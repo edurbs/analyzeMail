@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDF;
 
@@ -26,8 +27,16 @@ public class AnalyzePDFTest {
         AnalyzePDF analyzePDF = new AnalyzePDF(this.getPath(fileName));
         Assertions.assertEquals(date, this.getFinalDate(analyzePDF.getBoletoDate()));
         Assertions.assertTrue(analyzePDF.isBoleto());
+        Assertions.assertFalse(analyzePDF.isNF());
     }
-        
+
+    @ParameterizedTest
+    @ValueSource(strings = {"nfse1.pdf", "nfse2.pdf", "nfSoImagemNFSCuiaba.pdf"})
+    void testIfIsNfse(String fileName) {
+        AnalyzePDF analyzePDF = new AnalyzePDF(this.getPath(fileName));
+        Assertions.assertTrue(analyzePDF.isNfse());
+        Assertions.assertFalse(analyzePDF.isBoleto());        
+    }    
     
 
     @Test

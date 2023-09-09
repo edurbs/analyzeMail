@@ -31,6 +31,8 @@ public class AnalyzePDF {
             "prestador de", "rps", "iss", "nfs-e", "autenticidade", "danfe", "documento auxiliar", "controle do fisco",
             "chave de acesso", "natureza da operação", "protocolo de autorização", "destinatário", "emitente",
             "dados dos produtos", "serviços" };
+    private String[] nfseKeywords = {"tomador", "serviços", "prestador", "nfs-e", "rps", "iss", "prefeitura",
+            "municipal", "issqn"};
     private String[] boletoKeywords = { "vencimento", "cedente", "referência", "pagador", "beneficiário",
             "nosso número", "valor do documento", "data do processamento", "mora", "multa", "juros", "carteira",
             "título", "pagável", "sacado", "débito automático", "total a pagar", "mês de referência", "serviços contratados",
@@ -73,6 +75,13 @@ public class AnalyzePDF {
         if(keywordsForNF > 5 && keywordsForNF>keywordsForBoleto){
             return true;
         }        
+        return false;
+    }
+
+    public boolean isNfse(){
+        if(nfseKeywords.length>8 && this.isNF()){
+            return true;
+        }
         return false;
     }
 
