@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.gmail;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,17 +13,17 @@ import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
 
 import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
-import br.com.medeirosecia.analyzemail.infra.email.Email;
+import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 
-public class HandleInbox {
+public class HandleGmailInbox {
 
     
     private String user = "me"; 
-    private Email email;        
+    private MyGmail email;        
     private Gmail service;
 
 
-    public HandleInbox(Email email){
+    public HandleGmailInbox(MyGmail email){
         this.email = email;        
         this.service = email.connect();
     

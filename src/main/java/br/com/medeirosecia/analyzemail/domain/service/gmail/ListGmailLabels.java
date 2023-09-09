@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.gmail;
 
 import java.io.IOException;
 import java.util.List;
@@ -7,13 +7,13 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListLabelsResponse;
 
-import br.com.medeirosecia.analyzemail.infra.email.Email;
+import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 
-public class ListLabels {
+public class ListGmailLabels {
 
-    public ListLabels(){
+    public ListGmailLabels(){
 
-        Email email = new Email("/credentials/credentials.json");
+        MyGmail email = new MyGmail("/credentials/credentials.json");
         Gmail gmail = email.connect();
 
         // Print the labels in the user's account.

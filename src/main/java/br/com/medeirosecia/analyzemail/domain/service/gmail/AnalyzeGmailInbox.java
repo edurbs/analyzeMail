@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.gmail;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -10,27 +10,27 @@ import com.google.api.services.gmail.model.ModifyMessageRequest;
 
 import br.com.medeirosecia.analyzemail.console.LocalConsole;
 import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
-import br.com.medeirosecia.analyzemail.infra.email.Email;
+import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDF;
+import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
 
-public class AnalyzeInbox {
+public class AnalyzeGmailInbox {
 
     private Gmail service;
     private String user;
-    private List<String> listLabelsAnalyzedMail;
     private LocalFileSystem localFileSystem;
     private LocalConsole console = new LocalConsole();
 
-    public AnalyzeInbox(){
+    public AnalyzeGmailInbox(){
         this.localFileSystem = new LocalFileSystem();
-        Email email = new Email(this.localFileSystem.getLocalCredentialsFolder());
-        HandleInbox handleInbox = new HandleInbox(email);
+        MyGmail myGmail = new MyGmail(this.localFileSystem.getLocalCredentialsFolder());
+        HandleGmailInbox handleGmailInbox = new HandleGmailInbox(myGmail);
         
-        this.service = handleInbox.getService();
-        this.user = handleInbox.getUser();
-        this.listLabelsAnalyzedMail = Collections.singletonList("Label_4928034761963589095");    
+        this.service = handleGmailInbox.getService();
+        this.user = handleGmailInbox.getUser();
+        
 
-        List<Message> messages = handleInbox.getNotAnalyzedMessages();
+        List<Message> messages = handleGmailInbox.getNotAnalyzedMessages();
 
         if(messages==null) {
             console.msgToUser("No messages found");            
@@ -43,13 +43,13 @@ public class AnalyzeInbox {
                 try {
                     // get the message
                     String messageId = m.getId();                
-                    Message message = handleInbox.getMessage(messageId);
+                    Message message = handleGmailInbox.getMessage(messageId);
         
                     // list attachments
-                    var parts = handleInbox.listAttachments(message);
+                    var parts = handleGmailInbox.listAttachments(message);
 
                     // get all attachments
-                    var attachments = handleInbox.filterByExtension(messageId, parts);
+                    var attachments = handleGmailInbox.filterByExtension(messageId, parts);
 
                     // if PDF or XML, analyze the PDF and save it
                     for (Attachment att : attachments) {
@@ -69,6 +69,8 @@ public class AnalyzeInbox {
     }
 
     private void setLabel(String messageId){
+        // TODO put it in a file
+        var listLabelsAnalyzedMail = Collections.singletonList("Label_4928034761963589095");    
         ModifyMessageRequest modify = new ModifyMessageRequest().setAddLabelIds(listLabelsAnalyzedMail);
         try {
             service.users().messages().modify(user, messageId, modify).execute();

@@ -1,9 +1,10 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.pdf;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.List;
@@ -19,6 +20,7 @@ import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
 import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
 
 public class AnalyzePDF {
     private PDDocument pdfDocument;
@@ -66,19 +68,16 @@ public class AnalyzePDF {
             e.printStackTrace();
         }
     }
-
-    
-
     
     public boolean isNF(){
-        if(keywordsForNF > 5 && (keywordsForNF>keywordsForBoleto)){
+        if(keywordsForNF > 5 && keywordsForNF>keywordsForBoleto){
             return true;
         }        
         return false;
     }
 
     public boolean isBoleto(){
-        if(keywordsForBoleto > 5 && (keywordsForBoleto>keywordsForNF)){
+        if(keywordsForBoleto > 5 && keywordsForBoleto>keywordsForNF){
             return true;
         }        
         return false;
@@ -114,13 +113,6 @@ public class AnalyzePDF {
 
     }
 
-    public void setPdfText(String pdfText) {
-        this.pdfText = pdfText.toLowerCase();
-    }
-
-    public String getPdfText() {
-        return pdfText;
-    }
 
     private void checkKeyWords() {
         try {
@@ -129,20 +121,7 @@ public class AnalyzePDF {
 
             // if PDF has no text, works with OCR
             if(this.pdfText.length()<10){
-                PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-                BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);
-
-                Tesseract tesseract = new Tesseract();
-
-                URL url = AnalyzePDF.class.getResource("/tesseract/");
-                String tessractDataPath = Paths.get(url.toURI()).toString();
-                tesseract.setDatapath(tessractDataPath);
-
-                tesseract.setLanguage("por");
-                tesseract.setPageSegMode(1); // Automatic Page Segmentation with OSD
-                
-                String result = tesseract.doOCR(bufferedImage);
-                this.pdfText = result.toLowerCase();
+                getOCR();
             }
             
             for (String keyword : nfKeywords) {
@@ -150,7 +129,6 @@ public class AnalyzePDF {
                     keywordsForNF++;
                 }
             }
-
             
             for (String keyword : boletoKeywords) {
                 if (pdfText.contains(keyword)) {
@@ -162,6 +140,23 @@ public class AnalyzePDF {
             e.printStackTrace();
         } 
 
+    }
+
+    private void getOCR() throws IOException, URISyntaxException, TesseractException {
+        PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+        BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);
+
+        Tesseract tesseract = new Tesseract();
+
+        URL url = AnalyzePDF.class.getResource("/tesseract/");
+        String tessractDataPath = Paths.get(url.toURI()).toString();
+        tesseract.setDatapath(tessractDataPath);
+
+        tesseract.setLanguage("por");
+        tesseract.setPageSegMode(1); // Automatic Page Segmentation with OSD
+        
+        String result = tesseract.doOCR(bufferedImage);
+        this.pdfText = result.toLowerCase();
     }
 
 }
