@@ -10,9 +10,19 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDF;
+import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
+import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 
 public class AnalyzePDFTest {
+
+  
+    AnalyzePDFText analyzePDF;
+    ReadPDF readPDF;
+    
+    void setUp(String fileName) {
+        this.readPDF = new ReadPDF(this.getPath(fileName));
+        this.analyzePDF = new AnalyzePDFText(this.readPDF.getPDFText());
+    }
 
     @ParameterizedTest
     @CsvSource({ "boletoSicredi.pdf, 11/09/2023", 
@@ -24,25 +34,25 @@ public class AnalyzePDFTest {
             "guiaFunrural.pdf, 20/09/2023"
         })
     void testBoletosAndDate(String fileName, String date) {
-        AnalyzePDF analyzePDF = new AnalyzePDF(this.getPath(fileName));
-        Assertions.assertEquals(date, this.getFinalDate(analyzePDF.getBoletoDate()));
-        Assertions.assertTrue(analyzePDF.isBoleto());
-        Assertions.assertFalse(analyzePDF.isNF());
+        this.setUp(fileName);
+        Assertions.assertEquals(date, this.getFinalDate(this.analyzePDF.getBoletoDate()));
+        Assertions.assertTrue(this.analyzePDF.isBoleto());
+        Assertions.assertFalse(this.analyzePDF.isNF());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"nfse1.pdf", "nfse2.pdf", "nfSoImagemNFSCuiaba.pdf"})
     void testIfIsNfse(String fileName) {
-        AnalyzePDF analyzePDF = new AnalyzePDF(this.getPath(fileName));
-        Assertions.assertTrue(analyzePDF.isNfse());
-        Assertions.assertFalse(analyzePDF.isBoleto());        
+        this.setUp(fileName);
+        Assertions.assertTrue(this.analyzePDF.isNfse());
+        Assertions.assertFalse(this.analyzePDF.isBoleto());        
     }    
     
 
     @Test
     public void testOCRCheckIfIsNFPdfWithOnlyImage(){
-        var analyzePDF = new AnalyzePDF(this.getPath("nfSoImagemNFSCuiaba.pdf"));        
-        Assertions.assertTrue(analyzePDF.isNF());
+        this.setUp("nfSoImagemNFSCuiaba.pdf");        
+        Assertions.assertTrue(this.analyzePDF.isNF());
     }
  
 

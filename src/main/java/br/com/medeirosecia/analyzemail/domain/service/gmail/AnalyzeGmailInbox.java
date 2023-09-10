@@ -10,7 +10,8 @@ import com.google.api.services.gmail.model.ModifyMessageRequest;
 
 import br.com.medeirosecia.analyzemail.console.LocalConsole;
 import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
-import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDF;
+import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
+import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
 
@@ -87,7 +88,8 @@ public class AnalyzeGmailInbox {
 
             if(extension.equals("PDF")){
 
-                AnalyzePDF analyzePDF = new AnalyzePDF(attachment);
+                ReadPDF readPDF = new ReadPDF(attachment);
+                AnalyzePDFText analyzePDF = new AnalyzePDFText(readPDF.getPDFText());
 
                 if(analyzePDF.isNF()){                    
                     localFileSystem.savePdfNF(attachment);
