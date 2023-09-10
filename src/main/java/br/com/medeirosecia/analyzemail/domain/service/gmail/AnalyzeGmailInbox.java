@@ -9,7 +9,8 @@ import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
 
 import br.com.medeirosecia.analyzemail.console.LocalConsole;
-import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailLabel;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
@@ -27,8 +28,8 @@ public class AnalyzeGmailInbox {
         MyGmail myGmail = new MyGmail(this.localFileSystem.getLocalCredentialsFolder());
         HandleGmailInbox handleGmailInbox = new HandleGmailInbox(myGmail);
         
-        this.service = handleGmailInbox.getService();
-        this.user = handleGmailInbox.getUser();
+        this.service = myGmail.getConnection();
+        this.user = myGmail.getUser();
         
 
         List<Message> messages = handleGmailInbox.getNotAnalyzedMessages();
@@ -53,7 +54,7 @@ public class AnalyzeGmailInbox {
                     var attachments = handleGmailInbox.filterByExtension(messageId, parts);
 
                     // if PDF or XML, analyze the PDF and save it
-                    for (Attachment att : attachments) {
+                    for (EmailAttachment att : attachments) {
                         saveIfInteresting(att);
                     }
         
@@ -70,8 +71,10 @@ public class AnalyzeGmailInbox {
     }
 
     private void setLabel(String messageId){
-        // TODO put it in a file
-        var listLabelsAnalyzedMail = Collections.singletonList("Label_4928034761963589095");    
+        // TODO list labels and searsh for "analyzedMail" label
+        var emailLabel = new EmailLabel("Label_4928034761963589095", "AnalyzedMail");
+        
+        var listLabelsAnalyzedMail = Collections.singletonList(emailLabel.getId());    
         ModifyMessageRequest modify = new ModifyMessageRequest().setAddLabelIds(listLabelsAnalyzedMail);
         try {
             service.users().messages().modify(user, messageId, modify).execute();
@@ -80,7 +83,7 @@ public class AnalyzeGmailInbox {
         }
     }
 
-    private void saveIfInteresting(Attachment attachment) {
+    private void saveIfInteresting(EmailAttachment attachment) {
         String filename = attachment.getFilename();
         String extension = getExtension(filename);       
 

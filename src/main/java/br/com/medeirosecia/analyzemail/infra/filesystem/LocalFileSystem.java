@@ -3,7 +3,7 @@ package br.com.medeirosecia.analyzemail.infra.filesystem;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 
 public class LocalFileSystem {
     //private String baseFolder=System.getProperty("user.dir");
@@ -20,25 +20,25 @@ public class LocalFileSystem {
         return this.localCredentialsFolder;
     }
 
-    public void savePdfNF(Attachment attachment){
+    public void savePdfNF(EmailAttachment attachment){
         this.saveAttachment(attachment, nfFolder);
     }
 
-    public void savePdfBoleto(Attachment attachment, String[] date){
+    public void savePdfBoleto(EmailAttachment attachment, String[] date){
         String folder = this.getBoletoGroupFolder(date[2], date[1], date[0]);   
         this.createBoletoFolder(folder);
         this.saveAttachment(attachment, folder);
     }
 
-    public void savePdfOthers(Attachment attachment){
+    public void savePdfOthers(EmailAttachment attachment){
         this.saveAttachment(attachment, pdfOthersFolder);
     }
 
-    public void saveXml(Attachment attachment){
+    public void saveXml(EmailAttachment attachment){
         this.saveAttachment(attachment, xmlFolder);
     }
     
-    private void saveAttachment(Attachment attachment, String folder) {
+    private void saveAttachment(EmailAttachment attachment, String folder) {
         
         File file = new File(folder+"\\"+attachment.getFilename());
         try (FileOutputStream out = new FileOutputStream(file);) {            

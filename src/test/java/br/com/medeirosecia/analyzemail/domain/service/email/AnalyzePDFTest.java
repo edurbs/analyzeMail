@@ -48,13 +48,21 @@ public class AnalyzePDFTest {
         Assertions.assertFalse(this.analyzePDF.isBoleto());        
     }    
     
-
     @Test
     public void testOCRCheckIfIsNFPdfWithOnlyImage(){
         this.setUp("nfSoImagemNFSCuiaba.pdf");        
         Assertions.assertTrue(this.analyzePDF.isNF());
+        Assertions.assertFalse(this.analyzePDF.isBoleto());        
     }
- 
+
+    @ParameterizedTest
+    @ValueSource(strings = {"nfe1.pdf", "nfe2.pdf", "nfe3.pdf"})
+    void testIfIsNf(String fileName) {
+        this.setUp(fileName);
+        Assertions.assertTrue(this.analyzePDF.isNF());
+        Assertions.assertFalse(this.analyzePDF.isNfse());
+        Assertions.assertFalse(this.analyzePDF.isBoleto());
+    }
 
     private String getFinalDate(String[] date){
         String finalDate = date[0]+"/"+date[1]+"/"+date[2];

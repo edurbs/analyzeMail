@@ -16,7 +16,7 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 
 import br.com.medeirosecia.analyzemail.console.LocalConsole;
-import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import net.sourceforge.tess4j.Tesseract;
 
 public class ReadPDF {
@@ -24,7 +24,7 @@ public class ReadPDF {
     private String pdfText;
     private LocalConsole console = new LocalConsole();
 
-    public ReadPDF(Attachment attachment) {
+    public ReadPDF(EmailAttachment attachment) {
         try {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(attachment.getData());
             this.processPDF(inputStream);
