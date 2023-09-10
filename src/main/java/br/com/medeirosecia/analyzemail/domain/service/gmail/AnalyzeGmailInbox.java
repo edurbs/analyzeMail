@@ -14,17 +14,19 @@ import br.com.medeirosecia.analyzemail.domain.repository.EmailLabel;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
+import br.com.medeirosecia.analyzemail.infra.email.excel.MyExcel;
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
 
 public class AnalyzeGmailInbox {
 
     private Gmail service;
     private String user;
-    private LocalFileSystem localFileSystem;
+    private LocalFileSystem localFileSystem = new LocalFileSystem();
     private LocalConsole console = new LocalConsole();
+    private MyExcel myExcel = new MyExcel(this.localFileSystem);
 
     public AnalyzeGmailInbox(){
-        this.localFileSystem = new LocalFileSystem();
+        //this.localFileSystem = new LocalFileSystem();
         MyGmail myGmail = new MyGmail(this.localFileSystem.getLocalCredentialsFolder());
         HandleGmailInbox handleGmailInbox = new HandleGmailInbox(myGmail);
         
@@ -67,7 +69,8 @@ public class AnalyzeGmailInbox {
                     e.printStackTrace();
                 }
             }
-        }        
+        }
+        this.myExcel.saveWorkbook();        
     }
 
     private void setLabel(String messageId){
@@ -95,8 +98,9 @@ public class AnalyzeGmailInbox {
                 AnalyzePDFText analyzePDF = new AnalyzePDFText(readPDF.getPDFText());
 
                 if(analyzePDF.isNF()){                    
-                    localFileSystem.savePdfNF(attachment);
                     console.msgToUser("Saving PDF as NF file: "+filename);
+                    localFileSystem.savePdfNF(attachment);
+                    this.writeItAsExcel(analyzePDF);
 
                 }else if(analyzePDF.isBoleto()){
                     
@@ -119,6 +123,16 @@ public class AnalyzeGmailInbox {
             }
         }
     }
+
+    private void writeItAsExcel(AnalyzePDFText analyzePDF) {       
+        
+        String[] date = analyzePDF.getDataEmissao();
+        String dataEmissao = date[0]+"/"+date[1]+"/"+date[2];
+        String row[] = new String[]{dataEmissao,analyzePDF.getCNPJEmitente(), analyzePDF.getChaveDeAcesso()};
+        this.myExcel.addRow(row);
+
+    }
+
 
     private String getExtension(String filename) {
         if (filename.length() == 3) {

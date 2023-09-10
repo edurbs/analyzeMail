@@ -16,6 +16,10 @@ public class LocalFileSystem {
     private String xmlFolder=baseFolder+"\\xml";
     private String localCredentialsFolder=baseFolder+"\\credentials";
 
+    public String getBaseFolder(){
+        return this.baseFolder;
+    }
+
     public String getLocalCredentialsFolder(){
         return this.localCredentialsFolder;
     }

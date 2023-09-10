@@ -61,6 +61,7 @@ public class ReadPDF {
         try {
             this.pdfDocument = PDDocument.load(CloseShieldInputStream.wrap(inputStream));
             PDFTextStripper pdfTextStripper = new PDFTextStripper();
+           
             this.setPDFText(pdfTextStripper.getText(this.pdfDocument).toLowerCase());
 
             // if PDF has no text, works with OCR
