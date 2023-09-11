@@ -12,7 +12,6 @@ import br.com.medeirosecia.analyzemail.console.LocalConsole;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabel;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
-import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 import br.com.medeirosecia.analyzemail.infra.email.excel.MyExcel;
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
@@ -23,16 +22,23 @@ public class AnalyzeGmailInbox {
     private String user;
     private LocalFileSystem localFileSystem = new LocalFileSystem();
     private LocalConsole console = new LocalConsole();
-    private MyExcel myExcel = new MyExcel(this.localFileSystem);
+    private MyExcel myExcel;
 
     public AnalyzeGmailInbox(){
-        //this.localFileSystem = new LocalFileSystem();
+        
         MyGmail myGmail = new MyGmail(this.localFileSystem.getLocalCredentialsFolder());
         HandleGmailInbox handleGmailInbox = new HandleGmailInbox(myGmail);
         
         this.service = myGmail.getConnection();
         this.user = myGmail.getUser();
-        
+        myExcel = new MyExcel(this.localFileSystem, "PlanilhaNF-AnalyzedMail.xlsx");
+
+        String[] header = new String[]{"Dt.Emissão",
+                "CNPJ Emitente",
+                "Chave de acesso",
+                "Nome do arquivo"
+        };
+        myExcel.setHeader(header);
 
         List<Message> messages = handleGmailInbox.getNotAnalyzedMessages();
 
@@ -87,15 +93,14 @@ public class AnalyzeGmailInbox {
     }
 
     private void saveIfInteresting(EmailAttachment attachment) {
-        String filename = attachment.getFilename();
+        String filename = attachment.getFileName();
         String extension = getExtension(filename);       
 
         if(!extension.isEmpty()){
 
             if(extension.equals("PDF")){
-
-                ReadPDF readPDF = new ReadPDF(attachment);
-                AnalyzePDFText analyzePDF = new AnalyzePDFText(readPDF.getPDFText());
+                
+                AnalyzePDFText analyzePDF = new AnalyzePDFText(attachment);
 
                 if(analyzePDF.isNF()){                    
                     console.msgToUser("Saving PDF as NF file: "+filename);
@@ -128,7 +133,11 @@ public class AnalyzeGmailInbox {
         
         String[] date = analyzePDF.getDataEmissao();
         String dataEmissao = date[0]+"/"+date[1]+"/"+date[2];
-        String row[] = new String[]{dataEmissao,analyzePDF.getCNPJEmitente(), analyzePDF.getChaveDeAcesso()};
+        String row[] = new String[]{ dataEmissao,
+                    analyzePDF.getCNPJEmitente(), 
+                    analyzePDF.getChaveDeAcesso(),
+                    analyzePDF.getFileName()
+                };
         this.myExcel.addRow(row);
 
     }

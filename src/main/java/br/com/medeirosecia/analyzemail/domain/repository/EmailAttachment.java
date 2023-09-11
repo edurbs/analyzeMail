@@ -11,7 +11,7 @@ public class EmailAttachment {
     public byte[] getData() {
         return data;
     }
-    public String getFilename() {
+    public String getFileName() {
         return filename;
     }
     public void setFilename(String filename) {

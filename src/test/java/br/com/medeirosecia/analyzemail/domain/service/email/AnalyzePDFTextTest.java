@@ -1,15 +1,18 @@
 package br.com.medeirosecia.analyzemail.domain.service.email;
 
+import java.io.FileInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 
@@ -37,8 +40,16 @@ public class AnalyzePDFTextTest {
     }
     
     void setUp(String fileName) {
-        this.readPDF = new ReadPDF(this.getPath(fileName));
-        this.analyzePDF = new AnalyzePDFText(this.readPDF.getPDFText());
+        
+        try {
+            FileInputStream fis = new FileInputStream(this.getPath(fileName));            
+            //ByteArrayInputStream inputStream = new ByteArrayInputStream(IOUtils.toByteArray(fis));
+            EmailAttachment emailAttachment = new EmailAttachment(fileName, IOUtils.toByteArray(fis));            
+            this.analyzePDF = new AnalyzePDFText(emailAttachment);            
+            fis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @ParameterizedTest
@@ -88,7 +99,10 @@ public class AnalyzePDFTextTest {
             "nfe4.pdf, 5123 0612 8685 9800 0114 5500 1000 0105 4014 0078 3319",
             "nfe5.pdf, 5123 0903 2744 8100 0111 5500 1000 3400 6115 6530 5205",
             "nfe6.pdf, 5123 0861 0649 2900 7343 5500 1000 0589 1212 1746 6957",
-            "nfe7.pdf, 5123 0928 4881 0100 0172 5500 1000 0023 8810 0002 1644"
+            "nfe7.pdf, 5123 0928 4881 0100 0172 5500 1000 0023 8810 0002 1644",
+            "nfe8.pdf, 5121 0505 3803 2100 0778 5500 1000 0055 7412 5819 1160",
+            "nfe9.pdf, 5123 0904 7337 6700 0261 5500 1000 0273 4011 1828 6076",
+            "nfe10.pdf, 5123 0906 1166 0000 0104 5500 1000 0420 2515 8226 9257"
         })
     void testGetChaveDeAcesso(String fileName, String chave) {
         this.setUp(fileName);
@@ -102,7 +116,10 @@ public class AnalyzePDFTextTest {
             "nfe4.pdf, 12.868.598/0001-14",
             "nfe5.pdf, 03.274.481/0001-11",
             "nfe6.pdf, 61.064.929/0073-43",
-            "nfe7.pdf, 28.488.101/0001-72"
+            "nfe7.pdf, 28.488.101/0001-72",
+            "nfe8.pdf, 05.380.321/0007−78",
+            "nfe9.pdf, 04.733.767/0002-61",
+            "nfe10.pdf, 06.116.600/0001-04"
         })
     void testGetCNPJEmitente(String fileName, String cnpj) {
         this.setUp(fileName);
@@ -117,6 +134,9 @@ public class AnalyzePDFTextTest {
             "nfe5.pdf, 06/09/2023",
             "nfe6.pdf, 30/08/2023",
             "nfe7.pdf, 08/09/2023",
+            "nfe8.pdf, 21/05/2021",
+            "nfe9.pdf, 08/09/2023",
+            "nfe10.pdf, 08/09/2023"
         })
     void testGetDataEmissao(String fileName, String date) {
         this.setUp(fileName);

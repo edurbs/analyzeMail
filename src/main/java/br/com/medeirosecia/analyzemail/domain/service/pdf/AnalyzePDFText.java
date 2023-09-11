@@ -3,23 +3,20 @@ package br.com.medeirosecia.analyzemail.domain.service.pdf;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.springframework.cglib.core.Local;
-import org.springframework.format.annotation.DateTimeFormat;
-
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
 
 public class AnalyzePDFText {
     private String pdfText;
     private String dateSplitter = "";
+    private ReadPDF readPDF;
     private int keywordsFoundToBeNF = 0;
     private int keywordsFoundToBeNfse = 0;
     private int keywordsFoundToBeBoleto = 0;
@@ -36,10 +33,15 @@ public class AnalyzePDFText {
             "autenticação mecânica", "período de apuração", "número do documento", "pagar este documento até",
             "documento de arrecadação", "pagar até", "pague com o pix"
     };
-
-    public AnalyzePDFText(String pdfText) {
-        this.pdfText = pdfText;
+    
+    public AnalyzePDFText(EmailAttachment attachment){
+        this.readPDF= new ReadPDF(attachment);
+        this.pdfText = this.readPDF.getPDFText();
         this.checkKeyWords();
+    }
+
+    public String getFileName(){
+        return this.readPDF.getFileName();
     }
 
     public boolean isNF() {
@@ -62,7 +64,7 @@ public class AnalyzePDFText {
         }
         return false;
     }
-
+    
     
     private void checkKeyWords() {
 
@@ -159,19 +161,73 @@ public class AnalyzePDFText {
         return date;
     }
 
-    public String getChaveDeAcesso(){
-        return this.getNextRowByString("chave de acesso", 54, 54);
+    public String getChaveDeAcesso(){   
+        // blocks of 4 digits with two spaces, one dot or one space as separator
+        String regex = "\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}";
+        
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(this.pdfText);
+        String found;
+        if(matcher.find()){
+            found = matcher.group();
+            found = found.replaceAll("\\.", " ");
+            found = found.replaceAll("\\\s+", " ");
+            return found;
+        }
+    
+        return "";
     }
+    
 
     public String getCNPJEmitente(){
-        return this.getNextRowByString("cnpj", 14, 18);
+        String targetWord = "chave de acesso";
+        
+        Pattern pattern1 = Pattern.compile("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}[\\\u2212\\-]?\\d{2}");
+        Matcher matcher = pattern1.matcher(this.pdfText);
+        
+        String cnpj = "";        
+        String cnpjFound="";
+        int lastHowFar = Integer.MAX_VALUE;
+
+        while (matcher.find()) {
+            cnpjFound = matcher.group();
+
+            int indexOfTargetWord = this.pdfText.indexOf(targetWord);
+            int indexOfCnpjFound = this.pdfText.indexOf(cnpjFound);
+            int howFar = Math.abs(indexOfCnpjFound - indexOfTargetWord);
+
+            if (howFar < lastHowFar) {
+                lastHowFar = howFar;
+                cnpj = cnpjFound;
+            }
+        }
+
+        if(cnpj.isBlank() || cnpj.isEmpty()){
+            Pattern pattern2 = Pattern.compile("\\d{14}");
+            if(matcher.find()){
+                cnpj = matcher.group();
+            }else{
+                matcher = pattern2.matcher(this.pdfText);
+                if(matcher.find()){
+                    cnpj = matcher.group();
+                }
+            }            
+        }
+
+        // cnpj = this.getStringByPattern("cnpj", 18, pattern1);
+        // if(cnpj.isEmpty() || cnpj.isBlank()){
+        //     cnpj = this.getStringByPattern("cnpj", 14, pattern2);            
+        //     if(cnpj.isEmpty() || cnpj.isBlank()){
+        //     }
+        // }
+        return cnpj;
     }
 
     public String[] getDataEmissao(){
         
-        String targetWord = "emissão";
+        String targetWord = "autorização";
 
-        // Define um padrão de expressão regular para datas
+        // date with - / or . as separator
         Pattern pattern = Pattern.compile("\\d{2}[-/\\.]\\d{2}[-/\\.]\\d{4}");
         Matcher matcher = pattern.matcher(this.pdfText);
 
@@ -181,6 +237,7 @@ public class AnalyzePDFText {
 
         Date closestDate = null;
         Date date;
+        int lastHowFar = Integer.MAX_VALUE;
         try {
             
             while (matcher.find()) {
@@ -207,32 +264,54 @@ public class AnalyzePDFText {
                 int howFar = Math.abs(indexOfDate - indexOfEmissao);
     
                 // Verifique se esta data está mais próxima da palavra "emissão" do que a anterior
-                if (howFar < indexOfEmissao) {
+                if (howFar < lastHowFar) {
+                    lastHowFar = howFar;
                     closestDate = date;
                 }
             }
+
         } catch (ParseException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        } 
+        }  
 
         if (closestDate == null) {
             return new String[]{"","",""};
         }
 
-        LocalDate localDate = closestDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate closestLocalDate = closestDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-        int year = localDate.getYear();
+        int year = closestLocalDate.getYear();
         
         int thisYear = java.time.LocalDate.now().getYear();
-        if (year < thisYear - 1 || year > thisYear + 1){
+        if (year < thisYear - 5 || year > thisYear + 5){
             return new String[]{"","",""};
         }
 
-        return new String[]{(String.format("%02d",localDate.getDayOfMonth())),
-                String.format("%02d",localDate.getMonthValue()),
+        return new String[]{(String.format("%02d",closestLocalDate.getDayOfMonth())),
+                String.format("%02d",closestLocalDate.getMonthValue()),
                 String.format("%04d",year)};
     
+    }
+
+
+    private String getStringByPattern(String search, int size, Pattern pattern){
+        String[] rows = this.pdfText.split("\n");
+        String found="";
+        Matcher matcher;
+        for(int i=0; i< rows.length; i++){
+            if(rows[i].contains(search)){                
+                for (int j = i+1; j < rows.length; j++) {
+                    found = rows[j].trim();
+                    matcher = pattern.matcher(found);
+                    if(matcher.find() && size>0 && found.length() == size){                        
+                        return matcher.group();
+                    }                            
+                }
+                break;
+            }
+        }
+        return "";
     }
 
     private String getNextRowByString(String search, int min, int max){
@@ -243,12 +322,12 @@ public class AnalyzePDFText {
                 rowFound = i;
                 break;
             }
-        }
-        for (int i = rowFound+1; i < rows.length; i++) {
-            if(rows[i].trim().length() >= min && rows[i].trim().length() <= max){
-                return rows[i].trim();
-            }        
-        }
+            for (int j = rowFound+1; j < rows.length; j++) {
+                if(rows[j].trim().length() >= min && rows[j].trim().length() <= max){
+                    return rows[j].trim();
+                }        
+            }
+        }        
     
         return "";
     }

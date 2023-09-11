@@ -23,9 +23,11 @@ public class ReadPDF {
     private PDDocument pdfDocument;
     private String pdfText;
     private LocalConsole console = new LocalConsole();
+    EmailAttachment attachment;
 
     public ReadPDF(EmailAttachment attachment) {
         try {
+            this.attachment = attachment;
             ByteArrayInputStream inputStream = new ByteArrayInputStream(attachment.getData());
             this.processPDF(inputStream);
             inputStream.close();
@@ -35,16 +37,8 @@ public class ReadPDF {
     
     }
 
-    public ReadPDF(String filePath){
-        try {
-            FileInputStream fis = new FileInputStream(filePath);            
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(IOUtils.toByteArray(fis));
-            this.processPDF(inputStream);
-            inputStream.close();
-            fis.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public String getFileName(){
+        return this.attachment.getFileName();
 
     }
 
@@ -87,7 +81,7 @@ public class ReadPDF {
     
             Tesseract tesseract = new Tesseract();
     
-            URL url = AnalyzePDFText.class.getResource("/tesseract/");
+            URL url = AnalyzePDFText.class.getResource("/tesseract/fast/");
             String tessractDataPath = Paths.get(url.toURI()).toString();
             tesseract.setDatapath(tessractDataPath);
     

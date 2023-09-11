@@ -29,7 +29,7 @@ public class LocalFileSystem {
     }
 
     public void savePdfBoleto(EmailAttachment attachment, String[] date){
-        String folder = this.getBoletoGroupFolder(date[2], date[1], date[0]);   
+        String folder = this.getBoletoGroupFolder(date[2], date[1]);   
         this.createBoletoFolder(folder);
         this.saveAttachment(attachment, folder);
     }
@@ -44,12 +44,31 @@ public class LocalFileSystem {
     
     private void saveAttachment(EmailAttachment attachment, String folder) {
         
-        File file = new File(folder+"\\"+attachment.getFilename());
+        File file = new File(folder+"\\"+attachment.getFileName());
+
+        int counter = 0;
+        while (file.exists()) {
+            counter++;
+            String newName=getNewFileName(folder, counter);
+            file = new File(newName);
+        }        
+
         try (FileOutputStream out = new FileOutputStream(file);) {            
-            out.write(attachment.getData());
+            out.write(attachment.getData());            
         } catch (Exception e) {            
             e.printStackTrace();
         } 
+    }
+
+    private static String getNewFileName(String originalName, int counter) {
+        int indexOfDot = originalName.lastIndexOf(".");
+        if (indexOfDot == -1) {
+            return originalName + "_" + counter;
+        } else {
+            String baseName = originalName.substring(0, indexOfDot);
+            String extension = originalName.substring(indexOfDot);
+            return baseName + "_" + counter + extension;
+        }
     }
 
     public void createBoletoFolder(String folder){
@@ -57,8 +76,8 @@ public class LocalFileSystem {
         file.mkdirs();
     }
 
-    private String getBoletoGroupFolder(String year, String month, String day){
-        return boletoFolder+"\\"+year+"\\"+month+"\\"+day;
+    private String getBoletoGroupFolder(String year, String month){
+        return boletoFolder+"\\"+year+"\\"+month;
         
     }
     

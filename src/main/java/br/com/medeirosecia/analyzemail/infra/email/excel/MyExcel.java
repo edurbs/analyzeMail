@@ -17,10 +17,11 @@ public class MyExcel {
     private Sheet sheet;
     private LocalFileSystem localFileSystem;
     private String filePath;
+    private String[] header;
 
-    public MyExcel(LocalFileSystem localFileSystem){
+    public MyExcel(LocalFileSystem localFileSystem, String fileName){
         this.localFileSystem = localFileSystem;
-        this.filePath = localFileSystem.getBaseFolder()+"PlanilhaNF-AnalyzedMail.xlsx";
+        this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
         this.openWorkbook();
     }
 
@@ -60,11 +61,16 @@ public class MyExcel {
         return false;
     }
 
+    public void setHeader(String [] header){
+        this.header=header;
+    }
+
     private void addHeader(){
         this.sheet.createRow(0);
-        this.sheet.getRow(0).createCell(0).setCellValue("Dt.Emissão");
-        this.sheet.getRow(0).createCell(1).setCellValue("CNPJ Emitente");
-        this.sheet.getRow(0).createCell(2).setCellValue("Chave de acesso");
+        this.sheet.getRow(0).createCell(0).setCellValue(this.header[0]);
+        this.sheet.getRow(0).createCell(1).setCellValue(this.header[1]);
+        this.sheet.getRow(0).createCell(2).setCellValue(this.header[2]);
+        this.sheet.getRow(0).createCell(2).setCellValue(this.header[3]);
 
     }
 
