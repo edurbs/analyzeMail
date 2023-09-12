@@ -10,10 +10,13 @@ public class LocalFileSystem {
     private String baseFolder="\\temp\\email";
 
     private String pdfFolder=baseFolder+"\\pdf";
+
     private String boletoFolder=pdfFolder+"\\boleto";
     private String nfFolder=pdfFolder+"\\nf";
     private String pdfOthersFolder=pdfFolder+"\\outros";
+
     private String xmlFolder=baseFolder+"\\xml";
+
     private String localCredentialsFolder=baseFolder+"\\credentials";
 
     public String getBaseFolder(){
@@ -24,51 +27,60 @@ public class LocalFileSystem {
         return this.localCredentialsFolder;
     }
 
-    public void savePdfNF(EmailAttachment attachment){
-        this.saveAttachment(attachment, nfFolder);
+    public String savePdfNF(EmailAttachment attachment, String[] date){
+        String groupFolder = this.getNfGroupFolder(date[2], date[1]);
+        this.createBoletoFolder(groupFolder);
+        return this.saveAttachment(attachment, groupFolder);
     }
 
-    public void savePdfBoleto(EmailAttachment attachment, String[] date){
-        String folder = this.getBoletoGroupFolder(date[2], date[1]);   
-        this.createBoletoFolder(folder);
-        this.saveAttachment(attachment, folder);
+    public String savePdfBoleto(EmailAttachment attachment, String[] date){
+        String groupFolder = this.getBoletoGroupFolder(date[2], date[1]);   
+        this.createBoletoFolder(groupFolder);
+        return this.saveAttachment(attachment, groupFolder);
     }
 
-    public void savePdfOthers(EmailAttachment attachment){
-        this.saveAttachment(attachment, pdfOthersFolder);
+    public String savePdfOthers(EmailAttachment attachment){
+        return this.saveAttachment(attachment, pdfOthersFolder);
     }
 
-    public void saveXml(EmailAttachment attachment){
-        this.saveAttachment(attachment, xmlFolder);
+    public String saveXml(EmailAttachment attachment){
+        return this.saveAttachment(attachment, xmlFolder);
     }
     
-    private void saveAttachment(EmailAttachment attachment, String folder) {
-        
-        File file = new File(folder+"\\"+attachment.getFileName());
+    private String saveAttachment(EmailAttachment attachment, String folder) {
+        String baseName ="";
+        String extension="";
+        String fileName = attachment.getFileName();
 
+        int indexOfDot = fileName.lastIndexOf(".");
         int counter = 0;
+        if (indexOfDot == -1) {
+            baseName = fileName;
+        } else {
+            baseName = fileName.substring(0, indexOfDot);
+            extension = fileName.substring(indexOfDot);
+        }
+    
+        File file = new File(folder+"\\"+fileName);
         while (file.exists()) {
-            counter++;
-            String newName=getNewFileName(folder, counter);
-            file = new File(newName);
-        }        
+            counter++;            
+        
+            fileName=baseName + "_" + counter + extension;            
+
+            file = new File(folder+"\\"+fileName);
+        }
+        
+        
+        attachment.setFileName(folder+"\\"+fileName);
+        
+                
 
         try (FileOutputStream out = new FileOutputStream(file);) {            
             out.write(attachment.getData());            
         } catch (Exception e) {            
             e.printStackTrace();
         } 
-    }
-
-    private static String getNewFileName(String originalName, int counter) {
-        int indexOfDot = originalName.lastIndexOf(".");
-        if (indexOfDot == -1) {
-            return originalName + "_" + counter;
-        } else {
-            String baseName = originalName.substring(0, indexOfDot);
-            String extension = originalName.substring(indexOfDot);
-            return baseName + "_" + counter + extension;
-        }
+        return attachment.getFileName();
     }
 
     public void createBoletoFolder(String folder){
@@ -77,8 +89,15 @@ public class LocalFileSystem {
     }
 
     private String getBoletoGroupFolder(String year, String month){
-        return boletoFolder+"\\"+year+"\\"+month;
-        
+        return getGroupGolder(year,month,this.boletoFolder);
     }
-    
+
+    private String getNfGroupFolder(String year, String month){
+        return getGroupGolder(year,month,this.nfFolder);
+    }
+
+    private String getGroupGolder(String year, String month, String folder){
+        return folder+"\\"+year+"\\"+month;        
+    }
 }
+

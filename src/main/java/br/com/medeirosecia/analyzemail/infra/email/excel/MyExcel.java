@@ -1,9 +1,11 @@
 package br.com.medeirosecia.analyzemail.infra.email.excel;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -19,7 +21,8 @@ public class MyExcel {
     private String filePath;
     private String[] header;
 
-    public MyExcel(LocalFileSystem localFileSystem, String fileName){
+    public MyExcel(LocalFileSystem localFileSystem, String fileName, String[] header){
+        this.header = header;
         this.localFileSystem = localFileSystem;
         this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
         this.openWorkbook();
@@ -28,28 +31,29 @@ public class MyExcel {
     private void openWorkbook(){
         // check if file exists        
         File file = new File(this.filePath);
-        if(file.exists()){
-            try  {
-                this.workbook = WorkbookFactory.create(file);
-            } catch (Exception e) {
-                // TODO: handle exception
-                e.printStackTrace();
-            }
-        }else{
+        if(file.exists()){            
             try {
-                this.workbook = new XSSFWorkbook();
-                if(this.workbook.getNumberOfSheets() == 0){
-                    this.workbook.createSheet("PlanilhaNF-AnalyzedMail");                    
-                }
-                this.sheet = this.workbook.getSheetAt(0);
-                // check if there is a header, if not create the first row as header
-                if(headerNotExists()){
-                    this.addHeader();
-                }
+                this.workbook = new XSSFWorkbook(new FileInputStream(this.filePath));
             } catch (Exception e) {
-                // TODO: handle exception
+                // TODO Auto-generated catch block
                 e.printStackTrace();
+            }            
+        }else{
+            this.workbook = new XSSFWorkbook();
+        }
+        try {
+            if(this.workbook.getNumberOfSheets() == 0){
+                this.workbook.createSheet("PlanilhaNF-AnalyzedMail");                    
             }
+            this.sheet = this.workbook.getSheetAt(0);
+
+            // check if there is a header, if not create the first row as header
+            if(headerNotExists() && this.header!=null){
+                this.addHeader();
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
         }
         
     }
@@ -61,16 +65,12 @@ public class MyExcel {
         return false;
     }
 
-    public void setHeader(String [] header){
-        this.header=header;
-    }
-
     private void addHeader(){
         this.sheet.createRow(0);
         this.sheet.getRow(0).createCell(0).setCellValue(this.header[0]);
         this.sheet.getRow(0).createCell(1).setCellValue(this.header[1]);
         this.sheet.getRow(0).createCell(2).setCellValue(this.header[2]);
-        this.sheet.getRow(0).createCell(2).setCellValue(this.header[3]);
+        this.sheet.getRow(0).createCell(3).setCellValue(this.header[3]);
 
     }
 
@@ -85,7 +85,7 @@ public class MyExcel {
             e.printStackTrace();
         }
         
-    }   
+    }
 
     private int getLastRow(){
         return this.sheet.getLastRowNum();

@@ -14,9 +14,10 @@ public class EmailAttachment {
     public String getFileName() {
         return filename;
     }
-    public void setFilename(String filename) {
+    public void setFileName(String filename) {
         this.filename = filename;
     }
+
 
     
 }

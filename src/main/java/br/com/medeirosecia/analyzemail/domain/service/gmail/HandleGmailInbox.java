@@ -85,8 +85,7 @@ public class HandleGmailInbox {
         String attId = part.getBody().getAttachmentId();
         MessagePartBody attachPart;
         try {
-            attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();
-            //return Base64.getDecoder().decode(attachPart.getData());
+            attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();            
             return Base64.decodeBase64(attachPart.getData());
             
         } catch (IOException e) {

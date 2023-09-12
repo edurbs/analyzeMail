@@ -34,13 +34,13 @@ public class AnalyzePDFText {
             "documento de arrecadação", "pagar até", "pague com o pix"
     };
     
-    public AnalyzePDFText(EmailAttachment attachment){
+    public AnalyzePDFText(EmailAttachment attachment){        
         this.readPDF= new ReadPDF(attachment);
         this.pdfText = this.readPDF.getPDFText();
         this.checkKeyWords();
     }
 
-    public String getFileName(){
+    public String getFileName(){        
         return this.readPDF.getFileName();
     }
 
@@ -91,9 +91,12 @@ public class AnalyzePDFText {
     public String[] getBoletoDate() {
         Parser parser = new Parser();        
         int vencimento = this.pdfText.indexOf("vencimento");
-        String text = this.pdfText.substring(vencimento, this.pdfText.length());
+        String tempText = this.pdfText;
+        if(vencimento>0){
+            tempText = this.pdfText.substring(vencimento, this.pdfText.length());
+        }
 
-        List<LocalDateModel> dates = parser.parse(text);
+        List<LocalDateModel> dates = parser.parse(tempText);
 
         String date = "00/00/0000";
 
@@ -214,12 +217,6 @@ public class AnalyzePDFText {
             }            
         }
 
-        // cnpj = this.getStringByPattern("cnpj", 18, pattern1);
-        // if(cnpj.isEmpty() || cnpj.isBlank()){
-        //     cnpj = this.getStringByPattern("cnpj", 14, pattern2);            
-        //     if(cnpj.isEmpty() || cnpj.isBlank()){
-        //     }
-        // }
         return cnpj;
     }
 
@@ -231,7 +228,7 @@ public class AnalyzePDFText {
         Pattern pattern = Pattern.compile("\\d{2}[-/\\.]\\d{2}[-/\\.]\\d{4}");
         Matcher matcher = pattern.matcher(this.pdfText);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd-MM-yyyy");
         SimpleDateFormat dateFormat2 = new SimpleDateFormat("dd/MM/yyyy");
         SimpleDateFormat dateFormat3 = new SimpleDateFormat("dd.MM.yyyy");
 
@@ -245,13 +242,13 @@ public class AnalyzePDFText {
                 
              
                 if (dataStr.contains("-")) {
-                    date = dateFormat.parse(dataStr);
+                    date = dateFormat1.parse(dataStr);
                 } else if (dataStr.contains("/")) {
                     date = dateFormat2.parse(dataStr);
                 } else if (dataStr.contains(".")) {
                     date = dateFormat3.parse(dataStr);
                 } else{
-                    date = dateFormat.parse("01-01-0000");
+                    date = dateFormat1.parse("01-01-0000");
                 }
     
                 // Encontre a posição da palavra "emissão" no texto
@@ -292,44 +289,6 @@ public class AnalyzePDFText {
                 String.format("%02d",closestLocalDate.getMonthValue()),
                 String.format("%04d",year)};
     
-    }
-
-
-    private String getStringByPattern(String search, int size, Pattern pattern){
-        String[] rows = this.pdfText.split("\n");
-        String found="";
-        Matcher matcher;
-        for(int i=0; i< rows.length; i++){
-            if(rows[i].contains(search)){                
-                for (int j = i+1; j < rows.length; j++) {
-                    found = rows[j].trim();
-                    matcher = pattern.matcher(found);
-                    if(matcher.find() && size>0 && found.length() == size){                        
-                        return matcher.group();
-                    }                            
-                }
-                break;
-            }
-        }
-        return "";
-    }
-
-    private String getNextRowByString(String search, int min, int max){
-        String[] rows = this.pdfText.split("\n");
-        int rowFound = 0;
-        for (int i = 0; i < rows.length; i++) {
-            if(rows[i].contains(search)){
-                rowFound = i;
-                break;
-            }
-            for (int j = rowFound+1; j < rows.length; j++) {
-                if(rows[j].trim().length() >= min && rows[j].trim().length() <= max){
-                    return rows[j].trim();
-                }        
-            }
-        }        
-    
-        return "";
     }
 
 }
