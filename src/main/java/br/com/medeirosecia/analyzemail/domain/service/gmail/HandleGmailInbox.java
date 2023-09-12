@@ -12,29 +12,23 @@ import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
 
-import br.com.medeirosecia.analyzemail.domain.repository.Attachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 
 public class HandleGmailInbox {
 
     
-    private String user = "me"; 
-    private MyGmail email;        
-    private Gmail service;
-
-
-    public HandleGmailInbox(MyGmail email){
-        this.email = email;        
-        this.service = email.connect();
     
-    }
+    private MyGmail myGmail;        
+    private Gmail service;
+    private String user;
 
-    public Gmail getService(){
-        return this.service;
-    }
 
-    public String getUser(){
-        return this.user;
+    public HandleGmailInbox(MyGmail myGmail){
+        this.myGmail = myGmail;        
+        this.service = myGmail.getConnection();
+        this.user = this.myGmail.getUser();
+    
     }
 
     public Message getMessage(String messageId) {
@@ -47,11 +41,10 @@ public class HandleGmailInbox {
         return msg;
     }
 
-    public List<Message> getNotAnalyzedMessages() {
-        service = email.connect();
+    public List<Message> getNotAnalyzedMessages() {        
 
         try {
-            ListMessagesResponse listMessageResponse = service.users().messages().list(user)
+            ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
                     .setQ("!label:analyzedmail")
                 .execute();
             return listMessageResponse.getMessages();
@@ -68,8 +61,8 @@ public class HandleGmailInbox {
         
     }
 
-    public List<Attachment> filterByExtension(String messageId, List<MessagePart> parts) {
-        List<Attachment> attachments = new ArrayList<>();
+    public List<EmailAttachment> filterByExtension(String messageId, List<MessagePart> parts) {
+        List<EmailAttachment> attachments = new ArrayList<>();
 
         if(parts!=null){
             for(MessagePart part: parts) {
@@ -79,7 +72,7 @@ public class HandleGmailInbox {
                     
                     String filename = part.getFilename();                    
 
-                    Attachment attachment = new Attachment(filename, fileByteArray);
+                    EmailAttachment attachment = new EmailAttachment(filename, fileByteArray);
                     attachments.add(attachment);
                 }
             }
@@ -92,8 +85,7 @@ public class HandleGmailInbox {
         String attId = part.getBody().getAttachmentId();
         MessagePartBody attachPart;
         try {
-            attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();
-            //return Base64.getDecoder().decode(attachPart.getData());
+            attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();            
             return Base64.decodeBase64(attachPart.getData());
             
         } catch (IOException e) {

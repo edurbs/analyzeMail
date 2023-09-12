@@ -21,6 +21,9 @@ import com.google.api.services.gmail.GmailScopes;
 
 /* class to demonstrate use of Gmail list labels API */
 public class MyGmail {
+
+  Gmail service = null;
+  private String user = "me"; 
   /**
    * Application name.
    */
@@ -44,9 +47,11 @@ public class MyGmail {
 
   private String credentialsFile;
 
-  public MyGmail(String credentialsFilePath){
-    this.credentialsFile = credentialsFilePath+"\\credentials.json";
+  public MyGmail(String credentialsFilePath) {
+    this.credentialsFile = credentialsFilePath + "\\credentials.json";
     this.tokensFolder = credentialsFilePath + "\\tokens";
+
+    this.connect();
   }
 
   /**
@@ -58,9 +63,9 @@ public class MyGmail {
    */
   private Credential getCredentials(final NetHttpTransport httpTransport)
       throws IOException {
-    // Load client secrets.    
+    // Load client secrets.
     InputStream in = new java.io.FileInputStream(credentialsFile);
-    
+
     GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(in));
 
     // Build flow and trigger user authorization request.
@@ -75,17 +80,28 @@ public class MyGmail {
 
   public Gmail connect() {
     // Build a new authorized API client service.
-    Gmail service = null;
+
     try {
       final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-      service = new Gmail.Builder(HTTP_TRANSPORT, jsonFactory, getCredentials(HTTP_TRANSPORT))
+      this.service = new Gmail.Builder(HTTP_TRANSPORT, jsonFactory, getCredentials(HTTP_TRANSPORT))
           .setApplicationName(APPLICATION_NAME)
           .build();
 
-      
-    }catch(Exception e){
+    } catch (Exception e) {
       e.printStackTrace();
-    } 
-    return service;
+    }
+    return this.service;
+  }
+
+  public void disconnect() {
+    this.service = null;
+  }
+
+  public Gmail getConnection() {
+    return this.service;
+  }
+
+  public String getUser(){
+    return this.user;
   }
 }
