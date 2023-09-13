@@ -39,7 +39,7 @@ public class HandleGmailLabel {
             List<Label> labels = listResponse.getLabels();
 
             if (labels.isEmpty()) {
-                localConsole.msgToUser("No labels found.");
+                localConsole.msgToUser("Não foram encontradas etiquetas.");
             } else {                
                 for (Label label : labels) {                    
                     emailLabels.add(new EmailLabel(label.getId(), label.getName()));
@@ -51,5 +51,15 @@ public class HandleGmailLabel {
         }
 
         return emailLabels;
+    }
+
+    public EmailLabel getLabel(String label){
+        List<EmailLabel> emailLabels = listLabels();
+        for (EmailLabel emailLabel : emailLabels) {
+            if(emailLabel.getName().toLowerCase().contains(label.toLowerCase())){
+                return emailLabel;
+            }
+        }
+        return null;
     }
 }
