@@ -4,34 +4,25 @@ import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import br.com.medeirosecia.analyzemail.console.LocalConsole;
 import br.com.medeirosecia.analyzemail.domain.service.gmail.AnalyzeGmailInbox;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
-import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
-public class GuiFxController implements Initializable{
+public class GuiFxController implements Initializable {
 
-    @FXML
-    private CheckBox debug;
-
-    @FXML
-    private TextArea debugTextArea;
-
+  
     @FXML
     private ToggleGroup emailProvider;
 
@@ -43,9 +34,6 @@ public class GuiFxController implements Initializable{
 
     @FXML
     private TextField pathCredentials;
-
-    @FXML
-    private Spinner<Integer> minutes;
 
     @FXML
     private RadioButton outlookProvider;
@@ -62,7 +50,9 @@ public class GuiFxController implements Initializable{
     @FXML
     private Button buttonStart;
 
-    private LocalConsole console = new LocalConsole();
+    @FXML
+    private Label labelProgress;
+
     private LocalFileSystem localFileSystem = new LocalFileSystem();
     private Thread thread;
     private ConfigFile configFile;
@@ -93,55 +83,57 @@ public class GuiFxController implements Initializable{
 
     @FXML
     void buttonStartClicked(ActionEvent event) {
-        if(this.pathFolder.getText().isBlank() || this.pathCredentials.getText().isBlank()) {
-            this.debugTextArea.appendText("\nPor favor, selecione as credenciais e a pasta raiz");
-            return;
-        }       
         
 
         this.buttonStart.setDisable(true);
         this.buttonStop.setDisable(false);
-        this.progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
-        this.debugTextArea.appendText("\nIniciando...");
 
         
+       Task<Void> task = new AnalyzeGmailInbox(this.localFileSystem);
+       task.setOnFailed(w -> {
 
-        Runnable analyzeGmailInbox = new AnalyzeGmailInbox(this.console, this.localFileSystem, this.debugTextArea);
+        this.restartButtons();
+        this.labelProgress.setText("Finalizado com erros");
+        w.getSource().getException().printStackTrace();
+       });
 
-        this.thread = new Thread(()->{
+       task.setOnSucceeded(w->{
 
-            analyzeGmailInbox.run();
+        this.restartButtons();
+        this.labelProgress.setText("Finalizado");
+       });
 
-            Platform.runLater(()->{
-                restartButtons();
-            });
-            
-        });
+       progressBar.progressProperty().bind(task.progressProperty());
+       labelProgress.textProperty().bind(task.messageProperty());
+       
+       
 
+       this.thread = new Thread(task);
+       this.thread.start();
 
-        this.thread.start();
         
    
     }
 
+
+
     public void restartButtons(){
         this.buttonStart.setDisable(false);
         this.buttonStop.setDisable(true);
+        progressBar.progressProperty().unbind();
+        labelProgress.textProperty().unbind();
         this.progressBar.setProgress(0);
     }
 
     
     @FXML
     void buttonStopClicked(ActionEvent event) {        
-        this.debugTextArea.appendText("\nFinalizando...");
+       
         restartButtons();
 
         if(this.thread != null) {
             try {
-                //this.thread.join();
-                //this.thread.interrupt();
-                this.thread.stop();
-                this.thread=null;
+                this.thread.interrupt();
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -153,7 +145,7 @@ public class GuiFxController implements Initializable{
     public void initialize(URL location, ResourceBundle resources) {
         // TODO Auto-generated method stub
         this.configFile = new ConfigFile();
-
+       
         this.pathCredentials.setText(this.configFile.getCredentialsFilePath());        
         this.pathFolder.setText(this.configFile.getBaseFolder());
 
@@ -162,9 +154,6 @@ public class GuiFxController implements Initializable{
 
         restartButtons();
 
-        this.minutes.setValueFactory(
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 60, 30));
-        
     }
 
 

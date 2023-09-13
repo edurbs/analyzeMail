@@ -13,14 +13,13 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-import br.com.medeirosecia.analyzemail.console.LocalConsole;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import net.sourceforge.tess4j.Tesseract;
 
 public class ReadPDF {
     private PDDocument pdfDocument;
     private String pdfText;
-    private LocalConsole console = new LocalConsole();
+    
     EmailAttachment attachment;
 
     public ReadPDF(EmailAttachment attachment) {
@@ -72,7 +71,7 @@ public class ReadPDF {
     }
 
     private String getOCR()  {
-        console.msgToUser("Aplicando OCR...");
+       
         try {
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
             BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);

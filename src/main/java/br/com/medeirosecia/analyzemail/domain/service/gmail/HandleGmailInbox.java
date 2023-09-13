@@ -15,9 +15,7 @@ import com.google.api.services.gmail.model.MessagePartBody;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
 import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
 
-public class HandleGmailInbox {
-
-    
+public class HandleGmailInbox {    
     
     private MyGmail myGmail;        
     private Gmail service;

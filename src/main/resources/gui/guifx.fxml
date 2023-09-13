@@ -34,19 +34,16 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.RadioButton?>
-<?import javafx.scene.control.Spinner?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleGroup?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" prefHeight="400.0" prefWidth="394.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.medeirosecia.analyzemail.gui.GuiFxController">
+<VBox alignment="TOP_CENTER" prefHeight="187.0" prefWidth="394.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.medeirosecia.analyzemail.gui.GuiFxController">
   <children>
       <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="640.0">
          <children>
@@ -73,18 +70,7 @@
             <Button fx:id="buttonSearchFolder" mnemonicParsing="false" onAction="#buttonSearchFolderClicked" text="Procurar" />
          </children>
       </HBox>
-      <HBox alignment="CENTER_LEFT">
-         <children>
-            <Spinner fx:id="minutes" editable="true" prefHeight="25.0" prefWidth="68.0" />
-            <Label prefHeight="17.0" prefWidth="179.0" text="minutos para próxima execução.">
-               <HBox.margin>
-                  <Insets left="5.0" />
-               </HBox.margin>
-            </Label>
-            <CheckBox fx:id="debug" mnemonicParsing="false" selected="true" text="Mostrar mensagens" />
-         </children>
-      </HBox>
-      <HBox alignment="CENTER_LEFT" prefHeight="51.0" prefWidth="427.0">
+      <HBox alignment="CENTER" prefHeight="41.0" prefWidth="384.0">
          <children>
             <Button fx:id="buttonStart" mnemonicParsing="false" onAction="#buttonStartClicked" prefHeight="25.0" prefWidth="55.0" text="Iniciar">
                <HBox.margin>
@@ -94,7 +80,7 @@
                   <Font name="System Bold" size="12.0" />
                </font>
             </Button>
-            <Button fx:id="buttonStop" mnemonicParsing="false" onAction="#buttonStopClicked" text="Parar">
+            <Button fx:id="buttonStop" mnemonicParsing="false" onAction="#buttonStopClicked" prefHeight="25.0" prefWidth="57.0" text="Parar">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
@@ -102,14 +88,18 @@
                   <Insets right="5.0" />
                </HBox.margin>
             </Button>
-            <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="247.0" progress="0.0">
+         </children>
+      </HBox>
+      <HBox fx:id="hboxDebug" alignment="CENTER_LEFT" prefHeight="32.0" prefWidth="384.0">
+         <children>
+            <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="379.0" progress="0.0">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
             </ProgressBar>
          </children>
       </HBox>
-      <TextArea fx:id="debugTextArea" prefHeight="239.0" prefWidth="384.0" wrapText="true" />
+      <Label fx:id="labelProgress" prefHeight="17.0" prefWidth="378.0" />
   </children>
    <padding>
       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
