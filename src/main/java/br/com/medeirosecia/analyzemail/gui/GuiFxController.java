@@ -93,6 +93,12 @@ public class GuiFxController implements Initializable{
 
     @FXML
     void buttonStartClicked(ActionEvent event) {
+        if(this.pathFolder.getText().isBlank() || this.pathCredentials.getText().isBlank()) {
+            this.debugTextArea.appendText("\nPor favor, selecione as credenciais e a pasta raiz");
+            return;
+        }       
+        
+
         this.buttonStart.setDisable(true);
         this.buttonStop.setDisable(false);
         this.progressBar.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
@@ -101,9 +107,7 @@ public class GuiFxController implements Initializable{
         
 
         Runnable analyzeGmailInbox = new AnalyzeGmailInbox(this.console, this.localFileSystem, this.debugTextArea);
-        
-        //this.thread = new Thread(analyzeGmailInbox);
-        //thread.start();
+
         this.thread = new Thread(()->{
 
             analyzeGmailInbox.run();
@@ -155,6 +159,8 @@ public class GuiFxController implements Initializable{
 
         this.localFileSystem.setBaseFolder(this.pathFolder.getText());
         this.localFileSystem.setPathCredentials(this.pathCredentials.getText());
+
+        restartButtons();
 
         this.minutes.setValueFactory(
                 new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 60, 30));
