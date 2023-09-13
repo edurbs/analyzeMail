@@ -72,7 +72,7 @@ public class ReadPDF {
     }
 
     private String getOCR()  {
-        console.msgToUser("OCR...");
+        console.msgToUser("Aplicando OCR...");
         try {
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
             BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);

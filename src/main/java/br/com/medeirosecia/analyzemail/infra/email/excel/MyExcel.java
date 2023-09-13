@@ -5,10 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
@@ -17,13 +15,13 @@ public class MyExcel {
 
     private Workbook workbook;
     private Sheet sheet;
-    private LocalFileSystem localFileSystem;
+    
     private String filePath;
     private String[] header;
 
     public MyExcel(LocalFileSystem localFileSystem, String fileName, String[] header){
         this.header = header;
-        this.localFileSystem = localFileSystem;
+   
         this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
         this.openWorkbook();
     }

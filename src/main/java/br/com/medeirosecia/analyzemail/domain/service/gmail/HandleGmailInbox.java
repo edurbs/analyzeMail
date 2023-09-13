@@ -42,15 +42,17 @@ public class HandleGmailInbox {
     }
 
     public List<Message> getNotAnalyzedMessages() {        
+        if(this.service!=null){
+            try {
+                ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
+                        .setQ("!label:analyzedmail")
+                    .execute();
+                return listMessageResponse.getMessages();
+                      
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-        try {
-            ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
-                    .setQ("!label:analyzedmail")
-                .execute();
-            return listMessageResponse.getMessages();
-                  
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return Collections.emptyList();
     }
