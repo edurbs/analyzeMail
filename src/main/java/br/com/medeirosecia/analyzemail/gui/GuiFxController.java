@@ -83,36 +83,31 @@ public class GuiFxController implements Initializable {
 
     @FXML
     void buttonStartClicked(ActionEvent event) {
-        
 
         this.buttonStart.setDisable(true);
         this.buttonStop.setDisable(false);
 
-        
-       Task<Void> task = new AnalyzeGmailInbox(this.localFileSystem);
-       task.setOnFailed(w -> {
+        Task<Void> task = new AnalyzeGmailInbox(this.localFileSystem);
 
-        this.restartButtons();
-        this.labelProgress.setText("Finalizado com erros");
-        w.getSource().getException().printStackTrace();
-       });
+        task.setOnFailed(w -> {
 
-       task.setOnSucceeded(w->{
+            this.restartButtons();
+            this.labelProgress.setText("Finalizado com erros");
+            w.getSource().getException().printStackTrace();
+        });
 
-        this.restartButtons();
-        this.labelProgress.setText("Finalizado");
-       });
+        task.setOnSucceeded(w -> {
 
-       progressBar.progressProperty().bind(task.progressProperty());
-       labelProgress.textProperty().bind(task.messageProperty());
-       
-       
+            this.restartButtons();
+            this.labelProgress.setText("Finalizado");
+        });
 
-       this.thread = new Thread(task);
-       this.thread.start();
+        progressBar.progressProperty().bind(task.progressProperty());
+        labelProgress.textProperty().bind(task.messageProperty());
 
-        
-   
+        this.thread = new Thread(task);
+        this.thread.start();
+
     }
 
 

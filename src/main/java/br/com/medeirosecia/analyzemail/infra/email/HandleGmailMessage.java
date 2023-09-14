@@ -1,42 +1,43 @@
-package br.com.medeirosecia.analyzemail.domain.service.gmail;
+package br.com.medeirosecia.analyzemail.infra.email;
 
 import com.google.api.services.gmail.model.Message;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
+import br.com.medeirosecia.analyzemail.domain.service.gmail.HandleAttachment;
 import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
 
 public class HandleGmailMessage implements Runnable {
 
     private HandleGmailInbox handleGmailInbox;
 
-    private Message m;
+    private Message fullMessage;
 
     private LocalFileSystem localFileSystem;
 
-    public HandleGmailMessage(Message message, HandleGmailInbox handleGmailInbox, LocalFileSystem localFileSystem) {
-        this.m = message;
-        this.localFileSystem = localFileSystem;       
-   
+    public HandleGmailMessage(String messageId, HandleGmailInbox handleGmailInbox, LocalFileSystem localFileSystem) {
+        this.localFileSystem = localFileSystem;               
         this.handleGmailInbox = handleGmailInbox; 
+        this.fullMessage = handleGmailInbox.getMessage(messageId);            
  
     }
 
     
     @Override
     public void run() {
-         this.processMessage(m);
+         this.processMessage();
     }
 
 
-    private void processMessage(Message m) {
+    private void processMessage() {
 
-        String messageId = m.getId();                
+        String messageId = this.fullMessage.getId();                
         try {
             // get the message
-            Message message = handleGmailInbox.getMessage(messageId);
-      
+            //Message message = handleGmailInbox.getMessage(messageId);
+
             // list attachments
-            var parts = handleGmailInbox.listAttachments(message);
+            //var parts = handleGmailInbox.listAttachments(message);
+            var parts = handleGmailInbox.listAttachments(fullMessage);
 
             // get all attachments
             var attachments = handleGmailInbox.filterByExtension(messageId, parts);
