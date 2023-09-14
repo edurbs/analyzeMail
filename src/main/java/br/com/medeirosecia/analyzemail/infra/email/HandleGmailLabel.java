@@ -8,28 +8,22 @@ import java.util.List;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListLabelsResponse;
+import com.google.api.services.gmail.model.ModifyMessageRequest;
 
-import br.com.medeirosecia.analyzemail.console.LocalConsole;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabel;
 
 public class HandleGmailLabel {
-
-    LocalConsole localConsole = new LocalConsole();
+   
     Gmail service;
     String user;
+    EmailLabel emailLabel;
 
-    public HandleGmailLabel(MyGmail myGmail){
-
-        
-        this.service = myGmail.getConnection();
-
-        // Print the labels in the user's account.
-        this.user = myGmail.getUser();
-
-        
+    public HandleGmailLabel(EmailProvider myGmail){        
+        this.service = (Gmail) myGmail.getConnection();
+        this.user = myGmail.getUser();        
     }
 
-    public List<EmailLabel> listLabels(){
+    private List<EmailLabel> listLabels(){
         List<EmailLabel> emailLabels = new ArrayList<>();
 
         ListLabelsResponse listResponse;
@@ -38,9 +32,7 @@ public class HandleGmailLabel {
 
             List<Label> labels = listResponse.getLabels();
 
-            if (labels.isEmpty()) {
-                localConsole.msgToUser("Não foram encontradas etiquetas.");
-            } else {                
+            if (!labels.isEmpty()) {                                
                 for (Label label : labels) {                    
                     emailLabels.add(new EmailLabel(label.getId(), label.getName()));
                 }
@@ -53,13 +45,30 @@ public class HandleGmailLabel {
         return emailLabels;
     }
 
-    public EmailLabel getLabel(String label){
+    private void searchLabel(String label){
         List<EmailLabel> emailLabels = listLabels();
         for (EmailLabel emailLabel : emailLabels) {
             if(emailLabel.getName().toLowerCase().contains(label.toLowerCase())){
-                return emailLabel;
+                this.emailLabel = emailLabel;
             }
-        }
-        return null;
+        }        
     }
+
+    public EmailLabel getEmailLabel(){
+        
+        this.searchLabel("analyzedmail");
+        return this.emailLabel;
+    }
+
+    public void setLabel(String messageId){
+        var listLabelsAnalyzedMail = Collections.singletonList(this.emailLabel.getId());    
+        ModifyMessageRequest modify = new ModifyMessageRequest().setAddLabelIds(listLabelsAnalyzedMail);
+        try {
+            this.service.users().messages().modify(user, messageId, modify).execute();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
 }

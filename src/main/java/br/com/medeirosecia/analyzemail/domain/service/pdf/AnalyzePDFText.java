@@ -155,11 +155,16 @@ public class AnalyzePDFText {
         String date = localDateModel.getOriginalText();
         this.setDateSplitter(date);
         String[] dateSplit = date.split(this.dateSplitter);
-        date = String.format("%02d",Integer.parseInt(dateSplit[0]))
-                +"/"
-                +String.format("%02d",Integer.parseInt(dateSplit[1]))
-                +"/"
-                +String.format("%04d",Integer.parseInt(dateSplit[2]));
+        try {
+            date = String.format("%02d",Integer.parseInt(dateSplit[0]))
+                    +"/"
+                    +String.format("%02d",Integer.parseInt(dateSplit[1]))
+                    +"/"
+                    +String.format("%04d",Integer.parseInt(dateSplit[2]));            
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
         
         return date;
     }

@@ -13,14 +13,13 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
-//import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 
 /* class to demonstrate use of Gmail list labels API */
-public class MyGmail {
+public class GmailProvider implements EmailProvider{
 
   Gmail service = null;
   private String user = "me"; 
@@ -47,7 +46,7 @@ public class MyGmail {
 
   private String credentialsFile;
 
-  public MyGmail(String credentialsFilePath) {
+  public GmailProvider(String credentialsFilePath) {
     this.credentialsFile = credentialsFilePath;
     this.tokensFolder = System.getProperty("user.home") + "\\.tokens";
 
@@ -78,7 +77,7 @@ public class MyGmail {
     return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
   }
 
-  public Gmail connect() {
+  public void connect() {
     // Build a new authorized API client service.
 
     try {
@@ -90,7 +89,7 @@ public class MyGmail {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    return this.service;
+   
   }
 
   public void disconnect() {

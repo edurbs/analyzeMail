@@ -22,14 +22,16 @@ public class GuiFx {
             primaryStage.setScene(scene);
             primaryStage.setOnCloseRequest(event -> onClose());
             primaryStage.show();
+            
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    private void onClose() {
+    private void onClose() {        
         Platform.exit();
+        System.exit(0);
     }
 
 } 

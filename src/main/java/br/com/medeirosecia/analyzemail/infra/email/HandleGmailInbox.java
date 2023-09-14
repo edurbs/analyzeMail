@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.gmail;
+package br.com.medeirosecia.analyzemail.infra.email;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,20 +13,18 @@ import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
-import br.com.medeirosecia.analyzemail.infra.email.MyGmail;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailMessage;
 
-public class HandleGmailInbox {
-
+public class HandleGmailInbox {    
     
-    
-    private MyGmail myGmail;        
+    private EmailProvider myGmail;        
     private Gmail service;
     private String user;
 
 
-    public HandleGmailInbox(MyGmail myGmail){
+    public HandleGmailInbox(EmailProvider myGmail){
         this.myGmail = myGmail;        
-        this.service = myGmail.getConnection();
+        this.service = (Gmail) myGmail.getConnection();
         this.user = this.myGmail.getUser();
     
     }
@@ -41,20 +39,30 @@ public class HandleGmailInbox {
         return msg;
     }
 
-    public List<Message> getNotAnalyzedMessages() {        
+
+
+    public List<EmailMessage> getNotAnalyzedMessages() {        
+        List<Message> messages = new ArrayList<>();
         if(this.service!=null){
             try {
                 ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
                         .setQ("!label:analyzedmail")
                     .execute();
-                return listMessageResponse.getMessages();
+                messages = listMessageResponse.getMessages();
                       
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
-        return Collections.emptyList();
+        List<EmailMessage> emailMessages = new ArrayList<>();
+        if(messages!=null && !messages.isEmpty()){
+            for(Message message: messages) {
+                var emailMessage = new EmailMessage();
+                emailMessage.setId(message.getId());
+                emailMessages.add(emailMessage);
+            }
+        }
+        return emailMessages;
     }
 
 
