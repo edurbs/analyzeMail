@@ -13,16 +13,16 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDTO;
 import net.sourceforge.tess4j.Tesseract;
 
 public class ReadPDF {
     private PDDocument pdfDocument;
     private String pdfText;
     
-    EmailAttachment attachment;
+    EmailAttachmentDTO attachment;
 
-    public ReadPDF(EmailAttachment attachment) {
+    public ReadPDF(EmailAttachmentDTO attachment) {
         try {
             this.attachment = attachment;
             ByteArrayInputStream inputStream = new ByteArrayInputStream(attachment.getData());
@@ -85,7 +85,7 @@ public class ReadPDF {
             tesseract.setLanguage("por");
             tesseract.setPageSegMode(1); // Automatic Page Segmentation with OSD
             
-            String result = tesseract.doOCR(bufferedImage);
+            String result = tesseract.doOCR(bufferedImage);            
             return result.toLowerCase();
         } catch (Exception e) {
             // TODO: handle exception

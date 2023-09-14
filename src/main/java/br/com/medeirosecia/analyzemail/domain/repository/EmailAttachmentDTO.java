@@ -1,9 +1,9 @@
 package br.com.medeirosecia.analyzemail.domain.repository;
 
-public class EmailAttachment {
+public class EmailAttachmentDTO {
     private String filename;
     private byte[] data;
-    public EmailAttachment(String filename, byte[] data) {
+    public EmailAttachmentDTO(String filename, byte[] data) {
         this.filename = filename;
         this.data = data;    
     }

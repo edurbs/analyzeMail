@@ -1,12 +1,17 @@
 package br.com.medeirosecia.analyzemail.gui;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
-import br.com.medeirosecia.analyzemail.domain.service.gmail.AnalyzeGmailInbox;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
-import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
+import br.com.medeirosecia.analyzemail.domain.service.email.AnalyzeInbox;
+import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
+import br.com.medeirosecia.analyzemail.infra.email.gmail.GmailProvider;
+import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -24,19 +30,19 @@ public class GuiFxController implements Initializable {
 
   
     @FXML
-    private ToggleGroup emailProvider;
+    private ToggleGroup emailProviderGroup;
 
     @FXML
-    private RadioButton gmailProvider;
+    private RadioButton toggleGmailProvider;
+    
+    @FXML
+    private RadioButton toggleOutlookProvider;
 
     @FXML
     private Button buttonSearchFolder;
 
     @FXML
     private TextField pathCredentials;
-
-    @FXML
-    private RadioButton outlookProvider;
 
     @FXML
     private TextField pathFolder;
@@ -53,9 +59,11 @@ public class GuiFxController implements Initializable {
     @FXML
     private Label labelProgress;
 
-    private LocalFileSystem localFileSystem = new LocalFileSystem();
+    private BaseFolders baseFolders = new BaseFolders();
     private Thread thread;
     private ConfigFile configFile;
+    private String providerClassName;
+    private Map<Toggle, EmailProvider> emailProvidersMap;
 
     @FXML
     void buttonSearchFolderClicked(ActionEvent event) {
@@ -64,7 +72,7 @@ public class GuiFxController implements Initializable {
         File folderSelected = directoryChooser.showDialog(null);
         this.pathFolder.setText(folderSelected.getAbsolutePath());
 
-        this.localFileSystem.setBaseFolder(this.pathFolder.getText());
+        this.baseFolders.setBaseFolder(this.pathFolder.getText());
         this.configFile.setBaseFolder(this.pathFolder.getText());
         
     }
@@ -76,7 +84,7 @@ public class GuiFxController implements Initializable {
         File fileSelected = fileChooser.showOpenDialog(null);
         this.pathCredentials.setText(fileSelected.getAbsolutePath());
         
-        this.localFileSystem.setPathCredentials(this.pathCredentials.getText());
+        this.baseFolders.setPathCredentials(this.pathCredentials.getText());
         this.configFile.setCredentialsFilePath(this.pathCredentials.getText());
                 
     }
@@ -87,7 +95,12 @@ public class GuiFxController implements Initializable {
         this.buttonStart.setDisable(true);
         this.buttonStop.setDisable(false);
 
-        Task<Void> task = new AnalyzeGmailInbox(this.localFileSystem);
+        Toggle toggleEmailProviderSelected = emailProviderGroup.getSelectedToggle();
+        EmailProvider emailproviderSelected = this.emailProvidersMap.get(toggleEmailProviderSelected);        
+        emailproviderSelected.setCredentialsFile(this.baseFolders.getPathCredentials());
+        
+
+        Task<Void> task = new AnalyzeInbox(baseFolders, emailproviderSelected);          
 
         task.setOnFailed(w -> {
 
@@ -95,21 +108,19 @@ public class GuiFxController implements Initializable {
             this.labelProgress.setText("Finalizado com erros");
             w.getSource().getException().printStackTrace();
         });
-
+        
         task.setOnSucceeded(w -> {
-
+            
             this.restartButtons();
             this.labelProgress.setText("Finalizado");
         });
 
         progressBar.progressProperty().bind(task.progressProperty());
         labelProgress.textProperty().bind(task.messageProperty());
-
+        
         this.thread = new Thread(task);
         this.thread.start();
-
     }
-
 
 
     public void restartButtons(){
@@ -124,8 +135,7 @@ public class GuiFxController implements Initializable {
     @FXML
     void buttonStopClicked(ActionEvent event) {        
        
-        restartButtons();
-
+        
         if(this.thread != null) {
             try {
                 this.thread.interrupt();
@@ -134,6 +144,7 @@ public class GuiFxController implements Initializable {
                 e.printStackTrace();
             }
         }
+        //restartButtons();
     }
 
     @Override
@@ -144,8 +155,18 @@ public class GuiFxController implements Initializable {
         this.pathCredentials.setText(this.configFile.getCredentialsFilePath());        
         this.pathFolder.setText(this.configFile.getBaseFolder());
 
-        this.localFileSystem.setBaseFolder(this.pathFolder.getText());
-        this.localFileSystem.setPathCredentials(this.pathCredentials.getText());
+        this.baseFolders.setBaseFolder(this.pathFolder.getText());
+        this.baseFolders.setPathCredentials(this.pathCredentials.getText());
+
+        this.emailProvidersMap = new HashMap<>();
+        
+        EmailProvider gmailProvider = new GmailProvider();
+        emailProvidersMap.put(this.toggleGmailProvider, gmailProvider); 
+                  
+        // TODO
+        //this.configFile.setProviderId(this.providerId);
+
+        
 
         restartButtons();
 

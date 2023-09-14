@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDTO;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
 
@@ -34,7 +34,7 @@ public class AnalyzePDFText {
             "documento de arrecadação", "pagar até", "pague com o pix"
     };
     
-    public AnalyzePDFText(EmailAttachment attachment){        
+    public AnalyzePDFText(EmailAttachmentDTO attachment){        
         this.readPDF= new ReadPDF(attachment);
         this.pdfText = this.readPDF.getPDFText();
         this.checkKeyWords();

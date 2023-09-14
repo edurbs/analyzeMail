@@ -48,12 +48,12 @@
       <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="640.0">
          <children>
             <Label prefHeight="17.0" prefWidth="140.0" text="Selecione o provedor:" />
-            <RadioButton fx:id="gmailProvider" mnemonicParsing="false" prefHeight="17.0" prefWidth="108.0" selected="true" text="Google Gmail">
+            <RadioButton fx:id="toggleGmailProvider" mnemonicParsing="false" prefHeight="17.0" prefWidth="108.0" selected="true" text="Google Gmail">
                <toggleGroup>
-                  <ToggleGroup fx:id="emailProvider" />
+                  <ToggleGroup fx:id="emailProviderGroup" />
                </toggleGroup>
             </RadioButton>
-            <RadioButton fx:id="outlookProvider" disable="true" mnemonicParsing="false" text="Microsoft Outlook" toggleGroup="$emailProvider" />
+            <RadioButton fx:id="toggleOutlookProvider" disable="true" mnemonicParsing="false" text="Microsoft Outlook" toggleGroup="$emailProviderGroup" />
          </children>
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="44.0" prefWidth="640.0">

@@ -1,6 +1,6 @@
 package br.com.medeirosecia.analyzemail.domain.repository;
 
-public class EmailMessage {
+public class EmailMessageDTO {
     private String id;
     public void setId(String id) {
         this.id = id;

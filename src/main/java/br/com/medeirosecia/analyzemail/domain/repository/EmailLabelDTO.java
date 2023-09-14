@@ -1,10 +1,10 @@
 package br.com.medeirosecia.analyzemail.domain.repository;
 
-public class EmailLabel {
+public class EmailLabelDTO {
     private String id;
     private String name;
 
-    public EmailLabel(String id, String name) {
+    public EmailLabelDTO(String id, String name) {
         this.id = id;
         this.name = name;
     }
