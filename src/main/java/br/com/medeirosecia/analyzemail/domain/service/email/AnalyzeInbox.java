@@ -26,10 +26,11 @@ public class AnalyzeInbox extends Task<Void> {
     public Void call() throws Exception {
         EmailLabelDAO analizedLabel = emailProvider.getEmailLabel();
         if(analizedLabel==null){
+            // TODO criar label automaticamente
             updateMessage("Etiqueta não encontrada!");
             return null;
         }
-        emailProvider.setEmailLabel(analizedLabel);
+        //emailProvider.setEmailLabel(analizedLabel);
         
         String[] header = new String[]{"Dt.Emissão",
                 "CNPJ Emitente",
@@ -54,7 +55,7 @@ public class AnalyzeInbox extends Task<Void> {
                 updateMessage("Mensagem "+i+" de um pacote de "+messages.size());
                 
                 new HandleAttachment(baseFolders, emailProvider, myExcel, message);             
-                emailProvider.setMessageWithLabel(message.getId());
+                emailProvider.setMessageWithThisLabel(message.getId());
             }
 
 

@@ -7,10 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import org.jetbrains.annotations.NotNull;
+
 import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
 import br.com.medeirosecia.analyzemail.domain.service.email.AnalyzeInbox;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
 import br.com.medeirosecia.analyzemail.infra.email.GmailProvider;
+import br.com.medeirosecia.analyzemail.infra.email.OutlookProvider;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -39,16 +42,7 @@ public class GuiFxController implements Initializable {
     @FXML
     private RadioButton toggleOutlookProvider;
     
-    @FXML
-    private TextField textFieldAppId;
-
-    @FXML
-    private TextField textFieldUsername;
-
-    @FXML
-    private PasswordField passwordField;
-
-    @FXML
+       @FXML
     private Button buttonSearchFolder;
 
     @FXML
@@ -105,6 +99,8 @@ public class GuiFxController implements Initializable {
     @FXML
     void buttonStartClicked(ActionEvent event) {
 
+        
+
         this.buttonStart.setDisable(true);
         this.buttonStop.setDisable(false);
 
@@ -112,6 +108,7 @@ public class GuiFxController implements Initializable {
         EmailProvider emailproviderSelected = this.emailProvidersMap.get(toggleEmailProviderSelected);        
         emailproviderSelected.setCredentialsFile(this.baseFolders.getPathCredentials());
         
+        this.configFile.setEmailProvider(emailproviderSelected.getClass().getName().toLowerCase());
 
         Task<Void> task = new AnalyzeInbox(baseFolders, emailproviderSelected);          
 
@@ -144,27 +141,7 @@ public class GuiFxController implements Initializable {
         this.progressBar.setProgress(0);
     }
 
-    
-    @FXML
-    void onToggleGmailProvider(ActionEvent event) {
-        this.textFieldAppId.setDisable(true);
-        this.textFieldUsername.setDisable(true);
-        this.passwordField.setDisable(true);
-
-        this.textFieldPathCredentials.setDisable(false);
-        this.buttonSearchCredential.setDisable(false);
-    }
-
-    @FXML
-    void onToggleOutlookProvider(ActionEvent event) {
-        this.textFieldAppId.setDisable(false);
-        this.textFieldUsername.setDisable(false);
-        this.passwordField.setDisable(false);
-
-        this.textFieldPathCredentials.setDisable(true);
-        this.buttonSearchCredential.setDisable(true);
-    }
-
+   
     
     @FXML
     void buttonStopClicked(ActionEvent event) {        
@@ -196,12 +173,25 @@ public class GuiFxController implements Initializable {
         this.emailProvidersMap = new HashMap<>();
         
         EmailProvider gmailProvider = new GmailProvider();
+        EmailProvider outlookProvider = new OutlookProvider();
         emailProvidersMap.put(this.toggleGmailProvider, gmailProvider); 
+        emailProvidersMap.put(this.toggleOutlookProvider, outlookProvider); 
                   
-        // TODO
-        //this.configFile.setProviderId(this.providerId);
-
-        
+        String emailProviderFromConfig = this.configFile.getEmailProvider();
+        if(emailProviderFromConfig!=null){
+            String config = emailProviderFromConfig.toLowerCase();
+            emailProvidersMap.forEach((key, value) ->{
+                
+                if(value.getClass().getSimpleName()!=null){
+                    
+                    if(value.getClass().getSimpleName().toLowerCase().equals(config)){
+                        key.setSelected(true);
+                    }
+                }
+            
+            });
+               
+        }
 
         restartButtons();
 

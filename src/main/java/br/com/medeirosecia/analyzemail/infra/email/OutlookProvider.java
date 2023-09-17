@@ -1,50 +1,53 @@
 package br.com.medeirosecia.analyzemail.infra.email;
 
-import java.net.MalformedURLException;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+
+import org.apache.commons.io.FilenameUtils;
 
 import com.azure.identity.UsernamePasswordCredential;
 import com.azure.identity.UsernamePasswordCredentialBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
+import com.microsoft.graph.models.Attachment;
+import com.microsoft.graph.models.FileAttachment;
 import com.microsoft.graph.models.Message;
+import com.microsoft.graph.models.OutlookCategory;
 import com.microsoft.graph.models.Request;
+import com.microsoft.graph.requests.AttachmentCollectionPage;
+import com.microsoft.graph.requests.AttachmentRequest;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.MessageCollectionPage;
-
-// import com.microsoft.aad.msal4j.IAccount;
-// import com.microsoft.aad.msal4j.IAuthenticationResult;
-// import com.microsoft.aad.msal4j.MsalException;
-// import com.microsoft.aad.msal4j.PublicClientApplication;
-// import com.microsoft.aad.msal4j.SilentParameters;
-// import com.microsoft.aad.msal4j.UserNamePasswordParameters;
+import com.microsoft.graph.requests.OutlookCategoryCollectionPage;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
-import java.util.ArrayList;
 
 public class OutlookProvider implements EmailProvider {
    
 
-    private static String authority = "https://login.microsoftonline.com/organizations/";
-    //private static Set<String> scope = Collections.singleton("Mail.ReadWrite");
-    private List<String> scopes = Arrays.asList("Mail.ReadWrite");
+    private List<String> scopes = Arrays.asList("Mail.ReadWrite", "MailboxSettings.ReadWrite");
+
+    private static final String ANALYZED_MAIL = "analyzedMail";
+    private EmailLabelDAO emailLabelDAO;
+
+    private String clientId;
+    private String tenantId ;
+    private String username ;
+    private String password;
+
+    private String credentialsFile;
+    
+
+    private GraphServiceClient<Request> graphClient;    
 
 
-    private static String clientId = ""; // App id on microsoft entra TODO save it    
-    private static String tenantId = "";
-    private static String username = ""; // email from gui TODO save it
-    private static String password = ""; // password from gui TODO save it    
-    // TODO save password cript in a file
-
-    private GraphServiceClient<Request> graphClient;
-
-    public OutlookProvider(){
-        this.graphClient = getServiceClient();
-    }
     
     private GraphServiceClient getServiceClient(){
         UsernamePasswordCredential credential = new UsernamePasswordCredentialBuilder()
@@ -63,129 +66,58 @@ public class OutlookProvider implements EmailProvider {
         return null;
     }
 
-   /*  private IAuthenticationResult getToken() {   
+    @Override
+    public void setCredentialsFile(String credentialsFile) {
         
-        PublicClientApplication pca=null;
+        ObjectMapper objectMapper = new ObjectMapper();
+        File json = new File(credentialsFile);
         try {
-            pca = PublicClientApplication.builder(clientId)
-                    .authority(authority)
-                    .build();
-        } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;
-        }
+            JsonNode jsonNode = objectMapper.readTree(json);
 
-        //Get list of accounts from the application's token cache, and search them for the configured username
-        //getAccounts() will be empty on this first call, as accounts are added to the cache when acquiring a token
-        Set<IAccount> accountsInCache = pca.getAccounts().join();
-        IAccount account = getAccountByUsername(accountsInCache, username);
-
-        //Attempt to acquire token when user's account is not in the application's token cache
-        IAuthenticationResult result = null;
-        try {
-            result = acquireTokenUsernamePassword(pca, scope, account, username, password);
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return null;        }
-        System.out.println("Account username: " + result.account().username());
-        System.out.println("Access token:     " + result.accessToken());
-        System.out.println("Id token:         " + result.idToken());
-        System.out.println();
-
-        accountsInCache = pca.getAccounts().join();
-        account = getAccountByUsername(accountsInCache, username);
-
-        //Attempt to acquire token again, now that the user's account and a token are in the application's token cache
-        try {
-            result = acquireTokenUsernamePassword(pca, scope, account, username, password);
-        } catch (Exception e) {
+            this.clientId = jsonNode.get("clientId").asText();   
+            this.tenantId = jsonNode.get("tenantId").asText();
+            this.username = jsonNode.get("username").asText();
+            this.password = jsonNode.get("password").asText();
+            this.graphClient = getServiceClient();
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        System.out.println("Account username: " + result.account().username());
-        System.out.println("Access token:     " + result.accessToken());
-        System.out.println("Id token:         " + result.idToken());
 
-        return result;
     }
 
-    private static IAuthenticationResult acquireTokenUsernamePassword(PublicClientApplication pca,
-                                                                      Set<String> scope,
-                                                                      IAccount account,
-                                                                      String username,
-                                                                      String password) throws Exception {
-        IAuthenticationResult result;
-        try {
-            SilentParameters silentParameters =
-                    SilentParameters
-                            .builder(scope)
-                            .account(account)
-                            .build();
-            // Try to acquire token silently. This will fail on the first acquireTokenUsernamePassword() call
-            // because the token cache does not have any data for the user you are trying to acquire a token for
-            result = pca.acquireTokenSilently(silentParameters).join();
-            System.out.println("==acquireTokenSilently call succeeded");
-        } catch (Exception ex) {
-            if (ex.getCause() instanceof MsalException) {
-                System.out.println("==acquireTokenSilently call failed: " + ex.getCause());
-                UserNamePasswordParameters parameters =
-                        UserNamePasswordParameters
-                                .builder(scope, username, password.toCharArray())
-                                .build();
-                // Try to acquire a token via username/password. If successful, you should see
-                // the token and account information printed out to console
-                result = pca.acquireToken(parameters).join();
-                System.out.println("==username/password flow succeeded");
-            } else {
-                // Handle other exceptions accordingly
-                throw ex;
-            }
-        }
-        return result;
-    }
-
-   
-    private static IAccount getAccountByUsername(Set<IAccount> accounts, String username) {
-        if (accounts.isEmpty()) {
-            System.out.println("==No accounts in cache");
-        } else {
-            System.out.println("==Accounts in cache: " + accounts.size());
-            for (IAccount account : accounts) {
-                if (account.username().equals(username)) {
-                    return account;
+    @Override
+    public EmailLabelDAO getEmailLabel() {
+        OutlookCategoryCollectionPage masterCategories = graphClient
+            .me()
+            .outlook()
+            .masterCategories()
+            .buildRequest()
+            .get();
+        
+        if(masterCategories!=null){            
+            List<OutlookCategory> labels = masterCategories.getCurrentPage();
+            for (OutlookCategory label : labels) {
+                if(label.displayName!=null && label.displayName.equals(ANALYZED_MAIL)){
+                    this.emailLabelDAO = new EmailLabelDAO(label.id, label.displayName);
+                    return this.emailLabelDAO;
                 }
             }
         }
         return null;
     }
-*/
-    @Override
-    public String getUser() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUser'");
-    }
-
-    @Override
-    public void setCredentialsFile(String credentialsFile) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setCredentialsFile'");
-    }
-
-    @Override
-    public EmailLabelDAO getEmailLabel() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getEmailLabel'");
-    }
 
     @Override
     public List<EmailMessageDAO> getNotAnalyzedMessages() {
 
+        // $filter categories/any(c:c eq 'Yellow')
+        String filter = "categories/any(c:c ne '" + ANALYZED_MAIL + "')";
+        
         MessageCollectionPage messageCollectionPage = this.graphClient
                 .me()
                 .messages()                
                 .buildRequest()
+                .filter(filter)
                 .top(100)
                 .get();
         
@@ -198,7 +130,8 @@ public class OutlookProvider implements EmailProvider {
                 for (Message message: messages) {                
                     EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id);                
                     list.add(emailMessageDAO);
-                }            
+                }
+                return list;            
             } 
 
         }
@@ -208,21 +141,70 @@ public class OutlookProvider implements EmailProvider {
 
     @Override
     public List<EmailAttachmentDAO> listAttachments(String messageId, String[] extensions) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'listAttachments'");
+        if (messageId == null || extensions == null || extensions.length == 0) {
+            return Collections.emptyList();
+        }
+    
+        AttachmentCollectionPage attachmentCollectionPage = graphClient.me()
+                .messages(messageId)
+                .attachments()
+                .buildRequest()
+                .get();
+    
+        if (attachmentCollectionPage == null) {
+            return Collections.emptyList();
+        }
+    
+        List<Attachment> attachments = attachmentCollectionPage.getCurrentPage();
+        if (attachments.isEmpty()) {
+            return Collections.emptyList();
+        }
+    
+        List<EmailAttachmentDAO> emailAttachmentsDAO = new ArrayList<>();
+        for (Attachment attachment : attachments) {
+            String filename = attachment.name;
+            String extension = FilenameUtils.getExtension(filename);
+            if (Arrays.asList(extensions).contains(extension)) {
+                AttachmentRequest attachmentRequest = graphClient.me()
+                        .messages(messageId)
+                        .attachments(attachment.id)
+                        .buildRequest();
+                Attachment fullAttachment = attachmentRequest.get();
+                
+                if(fullAttachment instanceof FileAttachment){
+                    FileAttachment fileAttachment = (FileAttachment) fullAttachment;
+                    byte[] attachmentContent = fileAttachment.contentBytes;
+                    EmailAttachmentDAO emailAttachmentDAO = new EmailAttachmentDAO(filename, attachmentContent);
+                    emailAttachmentsDAO.add(emailAttachmentDAO);    
+                }
+                
+            }
+        }
+        return emailAttachmentsDAO;
+    }
+    
+    
+    
+    
+    @Override
+    public void setMessageWithThisLabel(String messageId) {
+        
+        if(messageId==null) return;
+        
+        List<String> categories = Collections.singletonList(ANALYZED_MAIL);
+
+        Message message = new Message();
+            
+        message.categories = categories;
+
+        graphClient.me()
+            .messages(messageId)
+            .buildRequest()
+            .patch(message);
+    
+
     }
 
-    @Override
-    public void setMessageWithLabel(String messageId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setMessageWithLabel'");
-    }
-
-    @Override
-    public void setEmailLabel(EmailLabelDAO emailLabel) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'setEmailLabel'");
-    }
 
     
 } 

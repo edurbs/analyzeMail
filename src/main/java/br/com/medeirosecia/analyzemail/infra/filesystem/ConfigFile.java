@@ -9,7 +9,8 @@ public class ConfigFile {
     private Properties prop;
     private String baseFolder;
     private String credentialsFilePath;
-    private String filePath;    
+    private String filePath;
+    private String emailProvider;
 
     public ConfigFile(){
         this.prop = new Properties();
@@ -21,6 +22,7 @@ public class ConfigFile {
                 prop.load(f);
                 this.baseFolder = prop.getProperty("baseFolder");
                 this.credentialsFilePath = prop.getProperty("credentialsFilePath");
+                this.emailProvider = prop.getProperty("emailProvider");
             }catch(Exception e){
                 e.printStackTrace();
             }
@@ -37,6 +39,10 @@ public class ConfigFile {
         if(this.credentialsFilePath!=null){
 
             this.prop.setProperty("credentialsFilePath", this.credentialsFilePath);
+        }
+        if(this.emailProvider!=null){
+            this.prop.setProperty("emailProvider", this.emailProvider);
+        
         }
         try (var f = new FileOutputStream(this.filePath)) {
             
@@ -56,12 +62,21 @@ public class ConfigFile {
         this.saveProperties();
     }
 
+    public void setEmailProvider(String emailProvider) {
+        this.emailProvider = emailProvider;
+        this.saveProperties();
+    }
+
     public String getBaseFolder() {
         return baseFolder;
     }
 
     public String getCredentialsFilePath() {
         return credentialsFilePath;
+    }
+
+    public String getEmailProvider() {
+        return emailProvider;
     }
 
     

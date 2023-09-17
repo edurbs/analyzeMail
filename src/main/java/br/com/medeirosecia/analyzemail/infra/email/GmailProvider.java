@@ -92,10 +92,6 @@ public class GmailProvider implements EmailProvider {
 
 	}
 
-	public String getUser() {
-		return this.user;
-	}
-
 	private Message getMessage(String messageId) {
 		Message msg = null;
 		try {
@@ -106,24 +102,20 @@ public class GmailProvider implements EmailProvider {
 		return msg;
 	}
 
-	private EmailLabelDAO searchForLabel(String label) {
-		EmailLabelDAO labelFound = null;
+	public EmailLabelDAO getEmailLabel() {		
 		List<EmailLabelDAO> emailLabels = listLabels();
 		for (EmailLabelDAO emailLabelDTO : emailLabels) {
-			if (emailLabelDTO.getName().toLowerCase().contains(label.toLowerCase())) {
-				labelFound = emailLabelDTO;
+			if (emailLabelDTO.getName().toLowerCase().contains(ANALYZED_MAIL.toLowerCase())) {
+				this.emailLabel = emailLabelDTO;
+				return emailLabelDTO;
 			}
 		}
-		return labelFound;
+		return null;
 	}
 
-	public EmailLabelDAO getEmailLabel() {
-		return this.searchForLabel(ANALYZED_MAIL);
-	}
-
-	public void setEmailLabel(EmailLabelDAO label) {
-		this.emailLabel = label;
-	}
+	// public void setEmailLabel(EmailLabelDAO label) {
+	// 	this.emailLabel = label;
+	// }
 
 	private List<EmailLabelDAO> listLabels() {
 		List<EmailLabelDAO> emailLabels = new ArrayList<>();
@@ -219,7 +211,7 @@ public class GmailProvider implements EmailProvider {
 		return filename.toLowerCase().endsWith(extension.toLowerCase());
 	}
 
-	public void setMessageWithLabel(String messageId) {
+	public void setMessageWithThisLabel(String messageId) {
 		List<String> listLabelsAnalyzedMail = Collections.singletonList(this.emailLabel.getId());
 		ModifyMessageRequest modify = new ModifyMessageRequest().setAddLabelIds(listLabelsAnalyzedMail);
 		try {
