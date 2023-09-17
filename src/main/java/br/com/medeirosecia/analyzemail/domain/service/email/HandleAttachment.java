@@ -5,8 +5,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDTO;
-import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDTO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
 import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
@@ -20,7 +20,7 @@ public class HandleAttachment {
 
 
     public HandleAttachment( BaseFolders baseFolders, EmailProvider emailProvider,
-            MyExcel myExcel, EmailMessageDTO emailMessage)  { 
+            MyExcel myExcel, EmailMessageDAO emailMessage)  { 
        
         this.baseFolders = baseFolders;       
         this.myExcel = myExcel;   
@@ -28,7 +28,7 @@ public class HandleAttachment {
         int maxThreads = 6;
         ExecutorService executor = Executors.newFixedThreadPool(maxThreads);    
         
-        List<EmailAttachmentDTO> attachments = emailProvider.listAttachments(emailMessage.getId(), extensions);        
+        List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(emailMessage.getId(), extensions);        
         attachments.stream().forEach(att -> {
             Runnable task = () -> {
                 analyzeAttachment(att);
@@ -44,7 +44,7 @@ public class HandleAttachment {
         }
         
     }
-    private void analyzeAttachment(EmailAttachmentDTO attachment) {        
+    private void analyzeAttachment(EmailAttachmentDAO attachment) {        
 
         String filename = attachment.getFileName();
         String extension = getExtension(filename);       

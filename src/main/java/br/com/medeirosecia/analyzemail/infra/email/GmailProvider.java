@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.infra.email.gmail;
+package br.com.medeirosecia.analyzemail.infra.email;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,10 +27,9 @@ import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDTO;
-import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDTO;
-import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDTO;
-import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 
 public class GmailProvider implements EmailProvider {
 
@@ -44,7 +43,7 @@ public class GmailProvider implements EmailProvider {
 	private GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
 	private String tokensFolder;
 	private final List<String> scopes = Collections.singletonList(GmailScopes.MAIL_GOOGLE_COM);
-	private EmailLabelDTO emailLabel;
+	private EmailLabelDAO emailLabel;
 
 	private String credentialsFile;
 
@@ -107,10 +106,10 @@ public class GmailProvider implements EmailProvider {
 		return msg;
 	}
 
-	private EmailLabelDTO searchForLabel(String label) {
-		EmailLabelDTO labelFound = null;
-		List<EmailLabelDTO> emailLabels = listLabels();
-		for (EmailLabelDTO emailLabelDTO : emailLabels) {
+	private EmailLabelDAO searchForLabel(String label) {
+		EmailLabelDAO labelFound = null;
+		List<EmailLabelDAO> emailLabels = listLabels();
+		for (EmailLabelDAO emailLabelDTO : emailLabels) {
 			if (emailLabelDTO.getName().toLowerCase().contains(label.toLowerCase())) {
 				labelFound = emailLabelDTO;
 			}
@@ -118,16 +117,16 @@ public class GmailProvider implements EmailProvider {
 		return labelFound;
 	}
 
-	public EmailLabelDTO getEmailLabel() {
+	public EmailLabelDAO getEmailLabel() {
 		return this.searchForLabel(ANALYZED_MAIL);
 	}
 
-	public void setEmailLabel(EmailLabelDTO label) {
+	public void setEmailLabel(EmailLabelDAO label) {
 		this.emailLabel = label;
 	}
 
-	private List<EmailLabelDTO> listLabels() {
-		List<EmailLabelDTO> emailLabels = new ArrayList<>();
+	private List<EmailLabelDAO> listLabels() {
+		List<EmailLabelDAO> emailLabels = new ArrayList<>();
 
 		ListLabelsResponse listResponse;
 		try {
@@ -137,7 +136,7 @@ public class GmailProvider implements EmailProvider {
 
 			if (!labels.isEmpty()) {
 				for (Label label : labels) {
-					emailLabels.add(new EmailLabelDTO(label.getId(), label.getName()));
+					emailLabels.add(new EmailLabelDAO(label.getId(), label.getName()));
 				}
 			}
 		} catch (IOException e) {
@@ -148,7 +147,7 @@ public class GmailProvider implements EmailProvider {
 		return emailLabels;
 	}
 
-	public List<EmailMessageDTO> getNotAnalyzedMessages() {
+	public List<EmailMessageDAO> getNotAnalyzedMessages() {
 		List<Message> messages = new ArrayList<>();
 		if (this.service != null) {
 			try {
@@ -161,11 +160,10 @@ public class GmailProvider implements EmailProvider {
 				e.printStackTrace();
 			}
 		}
-		List<EmailMessageDTO> emailMessages = new ArrayList<>();
+		List<EmailMessageDAO> emailMessages = new ArrayList<>();
 		if (messages != null && !messages.isEmpty()) {
 			for (Message message : messages) {
-				var emailMessage = new EmailMessageDTO();
-				emailMessage.setId(message.getId());
+				var emailMessage = new EmailMessageDAO(message.getId());				
 				emailMessages.add(emailMessage);
 			}
 		}
@@ -186,8 +184,8 @@ public class GmailProvider implements EmailProvider {
 		return new byte[0];
 	}
 
-	public List<EmailAttachmentDTO> listAttachments(String messageId, String[] extensions) {
-		List<EmailAttachmentDTO> emailAttachments = new ArrayList<>();
+	public List<EmailAttachmentDAO> listAttachments(String messageId, String[] extensions) {
+		List<EmailAttachmentDAO> emailAttachments = new ArrayList<>();
 		Message fullMessage = getMessage(messageId);
 
 		if (fullMessage != null) {
@@ -204,13 +202,13 @@ public class GmailProvider implements EmailProvider {
 	}
 
 	private void addMatchingAttachments(MessagePart part, String[] extensions, String messageId,
-			List<EmailAttachmentDTO> emailAttachments) {
+			List<EmailAttachmentDAO> emailAttachments) {
 		if (part != null && part.getFilename() != null && part.getFilename().length() > 0) {
 			for (String ext : extensions) {
 				if (isExtensionMatch(part.getFilename(), ext)) {
 					byte[] fileByteArray = downloadAttachment(part, messageId);
 					String filename = part.getFilename();
-					EmailAttachmentDTO attachment = new EmailAttachmentDTO(filename, fileByteArray);
+					EmailAttachmentDAO attachment = new EmailAttachmentDAO(filename, fileByteArray);
 					emailAttachments.add(attachment);
 				}
 			}

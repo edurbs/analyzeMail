@@ -1,6 +1,7 @@
 package br.com.medeirosecia.analyzemail;
 
 import br.com.medeirosecia.analyzemail.gui.GuiFx;
+import br.com.medeirosecia.analyzemail.infra.email.OutlookProvider;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -36,7 +37,7 @@ public class AnalyzemailApplication extends Application {
 		// primaryStage.show();
 
 		new GuiFx(primaryStage);
-		
+	
 
 	}
 

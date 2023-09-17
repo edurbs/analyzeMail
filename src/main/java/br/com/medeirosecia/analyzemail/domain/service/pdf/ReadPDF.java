@@ -13,16 +13,16 @@ import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDTO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import net.sourceforge.tess4j.Tesseract;
 
 public class ReadPDF {
     private PDDocument pdfDocument;
     private String pdfText;
     
-    EmailAttachmentDTO attachment;
+    EmailAttachmentDAO attachment;
 
-    public ReadPDF(EmailAttachmentDTO attachment) {
+    public ReadPDF(EmailAttachmentDAO attachment) {
         try {
             this.attachment = attachment;
             ByteArrayInputStream inputStream = new ByteArrayInputStream(attachment.getData());

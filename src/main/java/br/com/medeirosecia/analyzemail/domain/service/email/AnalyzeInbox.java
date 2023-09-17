@@ -2,8 +2,8 @@ package br.com.medeirosecia.analyzemail.domain.service.email;
 
 import java.util.List;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDTO;
-import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDTO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
 import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
@@ -24,7 +24,7 @@ public class AnalyzeInbox extends Task<Void> {
 
     @Override
     public Void call() throws Exception {
-        EmailLabelDTO analizedLabel = emailProvider.getEmailLabel();
+        EmailLabelDAO analizedLabel = emailProvider.getEmailLabel();
         if(analizedLabel==null){
             updateMessage("Etiqueta não encontrada!");
             return null;
@@ -39,12 +39,12 @@ public class AnalyzeInbox extends Task<Void> {
         var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx", header);
      
 
-        List<EmailMessageDTO> messages = emailProvider.getNotAnalyzedMessages();
+        List<EmailMessageDAO> messages = emailProvider.getNotAnalyzedMessages();
         while(messages!=null && !messages.isEmpty()){
                         
             int i=0;
             
-            for(EmailMessageDTO message : messages) {                
+            for(EmailMessageDAO message : messages) {                
                 if(Thread.currentThread().isInterrupted()){
                     break;
                 }

@@ -3,7 +3,7 @@ package br.com.medeirosecia.analyzemail.infra.filesystem;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDTO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 
 public class BaseFolders {
     //private String baseFolder=System.getProperty("user.dir");
@@ -45,27 +45,27 @@ public class BaseFolders {
         return this.baseFolder;
     }
 
-    public String savePdfNF(EmailAttachmentDTO attachment, String[] date){
+    public String savePdfNF(EmailAttachmentDAO attachment, String[] date){
         String groupFolder = this.getNfGroupFolder(date[2], date[1]);
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
 
-    public String savePdfBoleto(EmailAttachmentDTO attachment, String[] date){
+    public String savePdfBoleto(EmailAttachmentDAO attachment, String[] date){
         String groupFolder = this.getBoletoGroupFolder(date[2], date[1]);   
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
 
-    public String savePdfOthers(EmailAttachmentDTO attachment){
+    public String savePdfOthers(EmailAttachmentDAO attachment){
         return this.saveAttachment(attachment, pdfOthersFolder);
     }
 
-    public String saveXml(EmailAttachmentDTO attachment){
+    public String saveXml(EmailAttachmentDAO attachment){
         return this.saveAttachment(attachment, xmlFolder);
     }
     
-    private String saveAttachment(EmailAttachmentDTO attachment, String folder) {
+    private String saveAttachment(EmailAttachmentDAO attachment, String folder) {
         createFolder(folder);
         String baseName ="";
         String extension="";

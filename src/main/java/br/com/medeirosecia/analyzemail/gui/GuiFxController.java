@@ -10,7 +10,7 @@ import java.util.ResourceBundle;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
 import br.com.medeirosecia.analyzemail.domain.service.email.AnalyzeInbox;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
-import br.com.medeirosecia.analyzemail.infra.email.gmail.GmailProvider;
+import br.com.medeirosecia.analyzemail.infra.email.GmailProvider;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -18,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -37,15 +38,27 @@ public class GuiFxController implements Initializable {
     
     @FXML
     private RadioButton toggleOutlookProvider;
+    
+    @FXML
+    private TextField textFieldAppId;
+
+    @FXML
+    private TextField textFieldUsername;
+
+    @FXML
+    private PasswordField passwordField;
 
     @FXML
     private Button buttonSearchFolder;
 
     @FXML
-    private TextField pathCredentials;
+    private Button buttonSearchCredential;
 
     @FXML
-    private TextField pathFolder;
+    private TextField textFieldPathCredentials;
+
+    @FXML
+    private TextField textFieldPathFolder;
 
     @FXML
     private ProgressBar progressBar;
@@ -70,10 +83,10 @@ public class GuiFxController implements Initializable {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Selecione a pasta raiz para armazenar os arquivos");
         File folderSelected = directoryChooser.showDialog(null);
-        this.pathFolder.setText(folderSelected.getAbsolutePath());
+        this.textFieldPathFolder.setText(folderSelected.getAbsolutePath());
 
-        this.baseFolders.setBaseFolder(this.pathFolder.getText());
-        this.configFile.setBaseFolder(this.pathFolder.getText());
+        this.baseFolders.setBaseFolder(this.textFieldPathFolder.getText());
+        this.configFile.setBaseFolder(this.textFieldPathFolder.getText());
         
     }
    
@@ -82,10 +95,10 @@ public class GuiFxController implements Initializable {
         FileChooser fileChooser = new FileChooser();        
         fileChooser.setTitle("Selecione o arquivo de credenciais");
         File fileSelected = fileChooser.showOpenDialog(null);
-        this.pathCredentials.setText(fileSelected.getAbsolutePath());
+        this.textFieldPathCredentials.setText(fileSelected.getAbsolutePath());
         
-        this.baseFolders.setPathCredentials(this.pathCredentials.getText());
-        this.configFile.setCredentialsFilePath(this.pathCredentials.getText());
+        this.baseFolders.setPathCredentials(this.textFieldPathCredentials.getText());
+        this.configFile.setCredentialsFilePath(this.textFieldPathCredentials.getText());
                 
     }
 
@@ -133,6 +146,27 @@ public class GuiFxController implements Initializable {
 
     
     @FXML
+    void onToggleGmailProvider(ActionEvent event) {
+        this.textFieldAppId.setDisable(true);
+        this.textFieldUsername.setDisable(true);
+        this.passwordField.setDisable(true);
+
+        this.textFieldPathCredentials.setDisable(false);
+        this.buttonSearchCredential.setDisable(false);
+    }
+
+    @FXML
+    void onToggleOutlookProvider(ActionEvent event) {
+        this.textFieldAppId.setDisable(false);
+        this.textFieldUsername.setDisable(false);
+        this.passwordField.setDisable(false);
+
+        this.textFieldPathCredentials.setDisable(true);
+        this.buttonSearchCredential.setDisable(true);
+    }
+
+    
+    @FXML
     void buttonStopClicked(ActionEvent event) {        
        
         
@@ -149,14 +183,15 @@ public class GuiFxController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // TODO Auto-generated method stub
+        // TODO Auto-generated method stub        
+
         this.configFile = new ConfigFile();
        
-        this.pathCredentials.setText(this.configFile.getCredentialsFilePath());        
-        this.pathFolder.setText(this.configFile.getBaseFolder());
+        this.textFieldPathCredentials.setText(this.configFile.getCredentialsFilePath());        
+        this.textFieldPathFolder.setText(this.configFile.getBaseFolder());
 
-        this.baseFolders.setBaseFolder(this.pathFolder.getText());
-        this.baseFolders.setPathCredentials(this.pathCredentials.getText());
+        this.baseFolders.setBaseFolder(this.textFieldPathFolder.getText());
+        this.baseFolders.setPathCredentials(this.textFieldPathCredentials.getText());
 
         this.emailProvidersMap = new HashMap<>();
         
