@@ -34,10 +34,11 @@ public class OutlookProviderTest {
 
     @Test
     void testGetAttachments(){
+        provider.setCredentialsFile("C:\\temp\\outlookCredentials.json");
         String[] extensions = new String[] { "PDF", "XML" };
         var messages = provider.getNotAnalyzedMessages();
         for (EmailMessageDAO emailMessageDAO : messages) {
-            var atts = provider.listAttachments(emailMessageDAO.getId(), extensions);
+            var atts = provider.listAttachments(emailMessageDAO, extensions);
             for (EmailAttachmentDAO att : atts) {                
                 System.out.println(att.getFileName());
                 Assertions.assertNotNull(att);                   

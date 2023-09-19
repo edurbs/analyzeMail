@@ -176,16 +176,16 @@ public class GmailProvider implements EmailProvider {
 		return new byte[0];
 	}
 
-	public List<EmailAttachmentDAO> listAttachments(String messageId, String[] extensions) {
+	public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions) {
 		List<EmailAttachmentDAO> emailAttachments = new ArrayList<>();
-		Message fullMessage = getMessage(messageId);
+		Message fullMessage = getMessage(emailMessageDAO.getId());
 
 		if (fullMessage != null) {
 			List<MessagePart> parts = fullMessage.getPayload().getParts();
 
 			if (parts != null && !parts.isEmpty()) {
 				for (MessagePart part : parts) {
-					addMatchingAttachments(part, extensions, messageId, emailAttachments);
+					addMatchingAttachments(part, extensions, emailMessageDAO.getId(), emailAttachments);
 				}
 			}
 		}
@@ -199,7 +199,7 @@ public class GmailProvider implements EmailProvider {
 			for (String ext : extensions) {
 				if (isExtensionMatch(part.getFilename(), ext)) {
 					byte[] fileByteArray = downloadAttachment(part, messageId);
-					String filename = part.getFilename();
+					String filename = part.getFilename().replaceAll("[\\\\/:*?\"<>|]", "_");
 					EmailAttachmentDAO attachment = new EmailAttachmentDAO(filename, fileByteArray);
 					emailAttachments.add(attachment);
 				}

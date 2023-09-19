@@ -13,7 +13,7 @@ public interface EmailProvider {
     public void setCredentialsFile(String credentialsFile);
     public EmailLabelDAO getEmailLabel();
     public List<EmailMessageDAO> getNotAnalyzedMessages();
-    public List<EmailAttachmentDAO> listAttachments(String messageId, String[] extensions);
+    public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions);
     public void setMessageWithThisLabel(String messageId);    
     //public void setEmailLabel(EmailLabelDAO emailLabel);
 

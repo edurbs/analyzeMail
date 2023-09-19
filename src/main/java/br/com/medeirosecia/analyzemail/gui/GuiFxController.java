@@ -15,6 +15,8 @@ import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
 import br.com.medeirosecia.analyzemail.infra.email.GmailProvider;
 import br.com.medeirosecia.analyzemail.infra.email.OutlookProvider;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -71,6 +73,8 @@ public class GuiFxController implements Initializable {
     private ConfigFile configFile;
     private String providerClassName;
     private Map<Toggle, EmailProvider> emailProvidersMap;
+    private ObservableValue<? extends String> valueProperty;
+    
 
     @FXML
     void buttonSearchFolderClicked(ActionEvent event) {
@@ -128,9 +132,12 @@ public class GuiFxController implements Initializable {
         progressBar.progressProperty().bind(task.progressProperty());
         labelProgress.textProperty().bind(task.messageProperty());
         
+        
         this.thread = new Thread(task);
         this.thread.start();
     }
+
+
 
 
     public void restartButtons(){
@@ -147,9 +154,15 @@ public class GuiFxController implements Initializable {
     void buttonStopClicked(ActionEvent event) {        
        
         
-        if(this.thread != null) {
+        if(this.thread != null && this.thread.isAlive()) {
+       
             try {
-                this.thread.interrupt();
+                
+                this.thread.interrupt();    
+                            
+                //labelProgress.setText("Finalizando!!!");
+                //this.thread.join(0);                
+                
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

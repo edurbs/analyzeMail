@@ -274,7 +274,7 @@ public class OutlookProvider implements EmailProvider {
                 for (Message message: messages) {                
                     List<String> categories = message.categories;
                     if(!categories.contains(ANALYZED_MAIL)){
-                        EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id);                
+                        EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);                
                         list.add(emailMessageDAO);                                
                     }     
                 }
@@ -290,51 +290,61 @@ public class OutlookProvider implements EmailProvider {
     }
 
     @Override
-    public List<EmailAttachmentDAO> listAttachments(String messageId, String[] extensions) {
-        if (messageId == null || extensions == null || extensions.length == 0) {
+    public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions) {
+        if (emailMessageDAO == null || extensions == null || extensions.length == 0) {
             return Collections.emptyList();
         }
-    
-        AttachmentCollectionPage attachmentCollectionPage = graphClient
-                .users(sharedMailboxId)
-                //.me()
-                .messages(messageId)
-                .attachments()
-                .buildRequest()
-                .get();
-    
-        if (attachmentCollectionPage == null) {
-            return Collections.emptyList();
-        }
-    
-        List<Attachment> attachments = attachmentCollectionPage.getCurrentPage();
-        if (attachments.isEmpty()) {
-            return Collections.emptyList();
-        }
-    
-        List<EmailAttachmentDAO> emailAttachmentsDAO = new ArrayList<>();
-        for (Attachment attachment : attachments) {
-            String filename = attachment.name;
-            String extension = FilenameUtils.getExtension(filename);
-            if (Arrays.asList(extensions).contains(extension)) {
-                AttachmentRequest attachmentRequest = graphClient
-                        .users(sharedMailboxId)
-                        //.me()
-                        .messages(messageId)
-                        .attachments(attachment.id)
-                        .buildRequest();
-                Attachment fullAttachment = attachmentRequest.get();
-                
-                if(fullAttachment instanceof FileAttachment){
-                    FileAttachment fileAttachment = (FileAttachment) fullAttachment;
-                    byte[] attachmentContent = fileAttachment.contentBytes;
-                    EmailAttachmentDAO emailAttachmentDAO = new EmailAttachmentDAO(filename, attachmentContent);
-                    emailAttachmentsDAO.add(emailAttachmentDAO);    
-                }
-                
+
+        try {
+            
+            AttachmentCollectionPage attachmentCollectionPage = graphClient
+                    .users(sharedMailboxId)
+                    //.me()
+                    .mailFolders(emailMessageDAO.getFolderId())
+                    .messages(emailMessageDAO.getId())
+                    .attachments()
+                    .buildRequest()
+                    .get();
+        
+            if (attachmentCollectionPage == null) {
+                return Collections.emptyList();
             }
+        
+            List<Attachment> attachments = attachmentCollectionPage.getCurrentPage();
+            if (attachments.isEmpty()) {
+                return Collections.emptyList();
+            }
+        
+            List<EmailAttachmentDAO> emailAttachmentsDAO = new ArrayList<>();
+            for (Attachment attachment : attachments) {
+                if(attachment.name!=null){
+                    String filename = attachment.name.replaceAll("[\\\\/:*?\"<>|]", "_");            
+                    String extension = FilenameUtils.getExtension(filename.toUpperCase());
+                    if (Arrays.asList(extensions).contains(extension)) {
+                        AttachmentRequest attachmentRequest = graphClient
+                                .users(sharedMailboxId)
+                                //.me()
+                                .messages(emailMessageDAO.getId())
+                                .attachments(attachment.id)
+                                .buildRequest();
+                        Attachment fullAttachment = attachmentRequest.get();
+                        
+                        if(fullAttachment instanceof FileAttachment){
+                            FileAttachment fileAttachment = (FileAttachment) fullAttachment;
+                            byte[] attachmentContent = fileAttachment.contentBytes;
+                            EmailAttachmentDAO emailAttachmentDAO = new EmailAttachmentDAO(filename, attachmentContent);
+                            emailAttachmentsDAO.add(emailAttachmentDAO);    
+                        }
+                }
+                    
+                }
+            }
+            return emailAttachmentsDAO;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
-        return emailAttachmentsDAO;
+    
     }
     
     @Override
@@ -348,12 +358,18 @@ public class OutlookProvider implements EmailProvider {
             
         message.categories = categories;
 
-        graphClient
-            .users(sharedMailboxId)
-            //.me()
-            .messages(messageId)
-            .buildRequest()
-            .patch(message);
+        try {
+            graphClient
+                .users(sharedMailboxId)
+                //.me()
+                .messages(messageId)
+                .buildRequest()
+                .patch(message);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     
 
     }
