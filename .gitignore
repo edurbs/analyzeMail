@@ -36,3 +36,4 @@ src/main/resources/credentials/
 tokens
 .tokens
 analyzeMail.jar
+src/main/java/br/com/medeirosecia/analyzemail/infra/email/sample_cache.json

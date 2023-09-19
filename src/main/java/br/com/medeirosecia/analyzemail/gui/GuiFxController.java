@@ -108,7 +108,7 @@ public class GuiFxController implements Initializable {
         EmailProvider emailproviderSelected = this.emailProvidersMap.get(toggleEmailProviderSelected);        
         emailproviderSelected.setCredentialsFile(this.baseFolders.getPathCredentials());
         
-        this.configFile.setEmailProvider(emailproviderSelected.getClass().getName().toLowerCase());
+        this.configFile.setEmailProvider(emailproviderSelected.getClass().getSimpleName().toLowerCase());
 
         Task<Void> task = new AnalyzeInbox(baseFolders, emailproviderSelected);          
 
@@ -178,13 +178,14 @@ public class GuiFxController implements Initializable {
         emailProvidersMap.put(this.toggleOutlookProvider, outlookProvider); 
                   
         String emailProviderFromConfig = this.configFile.getEmailProvider();
+
         if(emailProviderFromConfig!=null){
             String config = emailProviderFromConfig.toLowerCase();
             emailProvidersMap.forEach((key, value) ->{
                 
                 if(value.getClass().getSimpleName()!=null){
                     
-                    if(value.getClass().getSimpleName().toLowerCase().equals(config)){
+                    if(value.getClass().getSimpleName().toLowerCase().contains(config)){
                         key.setSelected(true);
                     }
                 }
