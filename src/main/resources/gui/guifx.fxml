@@ -43,31 +43,46 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" prefHeight="187.0" prefWidth="394.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.medeirosecia.analyzemail.gui.GuiFxController">
+<VBox alignment="TOP_CENTER" prefHeight="187.0" prefWidth="386.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.medeirosecia.analyzemail.gui.GuiFxController">
   <children>
-      <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="640.0">
+      <HBox alignment="CENTER_LEFT" prefHeight="35.0" prefWidth="376.0">
          <children>
             <Label prefHeight="17.0" prefWidth="140.0" text="Selecione o provedor:" />
-            <RadioButton fx:id="gmailProvider" mnemonicParsing="false" prefHeight="17.0" prefWidth="108.0" selected="true" text="Google Gmail">
+            <RadioButton fx:id="toggleGmailProvider" mnemonicParsing="false" prefHeight="17.0" prefWidth="108.0" selected="true" text="Google Gmail">
                <toggleGroup>
-                  <ToggleGroup fx:id="emailProvider" />
+                  <ToggleGroup fx:id="emailProviderGroup" />
                </toggleGroup>
             </RadioButton>
-            <RadioButton fx:id="outlookProvider" disable="true" mnemonicParsing="false" text="Microsoft Outlook" toggleGroup="$emailProvider" />
+            <RadioButton fx:id="toggleOutlookProvider" mnemonicParsing="false" text="Microsoft Outlook" toggleGroup="$emailProviderGroup" />
          </children>
+         <VBox.margin>
+            <Insets bottom="5.0" />
+         </VBox.margin>
       </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="44.0" prefWidth="640.0">
          <children>
-            <Label text="Credencial: " />
-            <TextField fx:id="pathCredentials" prefHeight="25.0" prefWidth="252.0" />
-            <Button mnemonicParsing="false" onAction="#buttonCredentialClicked" text="Procurar" />
+            <Label text="JSON Credencial: " />
+            <TextField fx:id="textFieldPathCredentials" prefHeight="25.0" prefWidth="203.0" />
+            <Button fx:id="buttonSearchCredential" mnemonicParsing="false" onAction="#buttonCredentialClicked" text="Procurar">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin></Button>
          </children>
+         <VBox.margin>
+            <Insets bottom="5.0" />
+         </VBox.margin>
       </HBox>
       <HBox alignment="CENTER_LEFT">
          <children>
             <Label text="Pasta raiz: " />
-            <TextField fx:id="pathFolder" prefHeight="25.0" prefWidth="258.0" />
-            <Button fx:id="buttonSearchFolder" mnemonicParsing="false" onAction="#buttonSearchFolderClicked" text="Procurar" />
+            <TextField fx:id="textFieldPathFolder" prefHeight="25.0" prefWidth="247.0">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin></TextField>
+            <Button fx:id="buttonSearchFolder" mnemonicParsing="false" onAction="#buttonSearchFolderClicked" text="Procurar">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin></Button>
          </children>
       </HBox>
       <HBox alignment="CENTER" prefHeight="41.0" prefWidth="384.0">

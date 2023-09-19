@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.infra.email.excel;
+package br.com.medeirosecia.analyzemail.infra.excel;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,7 +9,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import br.com.medeirosecia.analyzemail.infra.filesystem.LocalFileSystem;
+import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 
 public class MyExcel {
 
@@ -19,7 +19,7 @@ public class MyExcel {
     private String filePath;
     private String[] header;
 
-    public MyExcel(LocalFileSystem localFileSystem, String fileName, String[] header){
+    public MyExcel(BaseFolders localFileSystem, String fileName, String[] header){
         this.header = header;
    
         this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
@@ -72,8 +72,9 @@ public class MyExcel {
 
     }
 
+    
 
-    public void saveWorkbook(){
+    public void saveAndCloseWorkbook(){
         
         try (FileOutputStream outputStream = new FileOutputStream(this.filePath)) {
             this.workbook.write(outputStream);

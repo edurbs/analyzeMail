@@ -3,6 +3,7 @@ package br.com.medeirosecia.analyzemail.infra.email;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -14,93 +15,210 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.client.util.Base64;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
+import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.ListLabelsResponse;
+import com.google.api.services.gmail.model.ListMessagesResponse;
+import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePart;
+import com.google.api.services.gmail.model.MessagePartBody;
+import com.google.api.services.gmail.model.ModifyMessageRequest;
 
-/* class to demonstrate use of Gmail list labels API */
-public class GmailProvider implements EmailProvider{
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 
-  Gmail service = null;
-  private String user = "me"; 
-  /**
-   * Application name.
-   */
-  private static final String APPLICATION_NAME = "AnalyzeMail";
+public class GmailProvider implements EmailProvider {
 
-  /**
-   * Global instance of the JSON factory.
-   */
-  private GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+	/**
+	 *
+	 */
+	private static final String ANALYZED_MAIL = "analyzedmail";
+	Gmail service = null;
+	private String user = "me";
+	private static final String APPLICATION_NAME = "AnalyzeMail";
+	private GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+	private String tokensFolder;
+	private final List<String> scopes = Collections.singletonList(GmailScopes.MAIL_GOOGLE_COM);
+	private EmailLabelDAO emailLabel;
 
-  /**
-   * Directory to store authorization tokens for this application.
-   */
-  private String tokensFolder;
+	private String credentialsFile;
 
-  /**
-   * Global instance of the scopes required by this quickstart.
-   * If modifying these scopes, delete your previously saved tokens/ folder.
-   */
-  private final List<String> scopes = Collections.singletonList(GmailScopes.MAIL_GOOGLE_COM);
+	public void setCredentialsFile(String credentialsFile) {
+		this.credentialsFile = credentialsFile;
+		this.tokensFolder = System.getProperty("user.home") + "\\.tokens";
+		this.connect();
+	}
 
-  private String credentialsFile;
+	/**
+	 * Creates an authorized Credential object.
+	 *
+	 * @param httpTransport The network HTTP Transport.
+	 * @return An authorized Credential object.
+	 * @throws IOException If the credentials.json file cannot be found.
+	 */
+	private Credential getCredentials(final NetHttpTransport httpTransport)
+			throws IOException {
+		// Load client secrets.
+		InputStream in = new java.io.FileInputStream(credentialsFile);
 
-  public GmailProvider(String credentialsFilePath) {
-    this.credentialsFile = credentialsFilePath;
-    this.tokensFolder = System.getProperty("user.home") + "\\.tokens";
+		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(in));
 
-    this.connect();
-  }
+		// Build flow and trigger user authorization request.
+		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+				httpTransport, jsonFactory, clientSecrets, scopes)
+				.setDataStoreFactory(new FileDataStoreFactory(new java.io.File(tokensFolder)))
+				.setAccessType("offline")
+				.build();
+		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
+		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
+	}
 
-  /**
-   * Creates an authorized Credential object.
-   *
-   * @param httpTransport The network HTTP Transport.
-   * @return An authorized Credential object.
-   * @throws IOException If the credentials.json file cannot be found.
-   */
-  private Credential getCredentials(final NetHttpTransport httpTransport)
-      throws IOException {
-    // Load client secrets.
-    InputStream in = new java.io.FileInputStream(credentialsFile);
+	private void connect() {
+		// Build a new authorized API client service.
 
-    GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new InputStreamReader(in));
+		try {
+			final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+			this.service = new Gmail.Builder(HTTP_TRANSPORT, jsonFactory, getCredentials(HTTP_TRANSPORT))
+					.setApplicationName(APPLICATION_NAME)
+					.build();
 
-    // Build flow and trigger user authorization request.
-    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-        httpTransport, jsonFactory, clientSecrets, scopes)
-        .setDataStoreFactory(new FileDataStoreFactory(new java.io.File(tokensFolder)))
-        .setAccessType("offline")
-        .build();
-    LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
-    return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-  }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-  public void connect() {
-    // Build a new authorized API client service.
+	}
 
-    try {
-      final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-      this.service = new Gmail.Builder(HTTP_TRANSPORT, jsonFactory, getCredentials(HTTP_TRANSPORT))
-          .setApplicationName(APPLICATION_NAME)
-          .build();
+	private Message getMessage(String messageId) {
+		Message msg = null;
+		try {
+			msg = this.service.users().messages().get(user, messageId).execute();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return msg;
+	}
 
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-   
-  }
+	public EmailLabelDAO getEmailLabel() {		
+		List<EmailLabelDAO> emailLabels = listLabels();
+		for (EmailLabelDAO emailLabelDTO : emailLabels) {
+			if (emailLabelDTO.getName().toLowerCase().contains(ANALYZED_MAIL.toLowerCase())) {
+				this.emailLabel = emailLabelDTO;
+				return emailLabelDTO;
+			}
+		}
+		return null;
+	}
 
-  public void disconnect() {
-    this.service = null;
-  }
+	// public void setEmailLabel(EmailLabelDAO label) {
+	// 	this.emailLabel = label;
+	// }
 
-  public Gmail getConnection() {
-    return this.service;
-  }
+	private List<EmailLabelDAO> listLabels() {
+		List<EmailLabelDAO> emailLabels = new ArrayList<>();
 
-  public String getUser(){
-    return this.user;
-  }
+		ListLabelsResponse listResponse;
+		try {
+			listResponse = service.users().labels().list(user).execute();
+
+			List<Label> labels = listResponse.getLabels();
+
+			if (!labels.isEmpty()) {
+				for (Label label : labels) {
+					emailLabels.add(new EmailLabelDAO(label.getId(), label.getName()));
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return emailLabels;
+	}
+
+	public List<EmailMessageDAO> getNotAnalyzedMessages() {
+		List<Message> messages = new ArrayList<>();
+		if (this.service != null) {
+			try {
+				ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
+						.setQ("!label:" + ANALYZED_MAIL)
+						.execute();
+				messages = listMessageResponse.getMessages();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		List<EmailMessageDAO> emailMessages = new ArrayList<>();
+		if (messages != null && !messages.isEmpty()) {
+			for (Message message : messages) {
+				var emailMessage = new EmailMessageDAO(message.getId());				
+				emailMessages.add(emailMessage);
+			}
+		}
+		return emailMessages;
+	}
+
+	private byte[] downloadAttachment(MessagePart part, String messageId) {
+		String attId = part.getBody().getAttachmentId();
+		MessagePartBody attachPart;
+		try {
+			attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();
+			return Base64.decodeBase64(attachPart.getData());
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new byte[0];
+	}
+
+	public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions) {
+		List<EmailAttachmentDAO> emailAttachments = new ArrayList<>();
+		Message fullMessage = getMessage(emailMessageDAO.getId());
+
+		if (fullMessage != null) {
+			List<MessagePart> parts = fullMessage.getPayload().getParts();
+
+			if (parts != null && !parts.isEmpty()) {
+				for (MessagePart part : parts) {
+					addMatchingAttachments(part, extensions, emailMessageDAO.getId(), emailAttachments);
+				}
+			}
+		}
+
+		return emailAttachments;
+	}
+
+	private void addMatchingAttachments(MessagePart part, String[] extensions, String messageId,
+			List<EmailAttachmentDAO> emailAttachments) {
+		if (part != null && part.getFilename() != null && part.getFilename().length() > 0) {
+			for (String ext : extensions) {
+				if (isExtensionMatch(part.getFilename(), ext)) {
+					byte[] fileByteArray = downloadAttachment(part, messageId);
+					String filename = part.getFilename().replaceAll("[\\\\/:*?\"<>|]", "_");
+					EmailAttachmentDAO attachment = new EmailAttachmentDAO(filename, fileByteArray);
+					emailAttachments.add(attachment);
+				}
+			}
+		}
+	}
+
+	private boolean isExtensionMatch(String filename, String extension) {
+		return filename.toLowerCase().endsWith(extension.toLowerCase());
+	}
+
+	public void setMessageWithThisLabel(String messageId) {
+		List<String> listLabelsAnalyzedMail = Collections.singletonList(this.emailLabel.getId());
+		ModifyMessageRequest modify = new ModifyMessageRequest().setAddLabelIds(listLabelsAnalyzedMail);
+		try {
+			this.service.users().messages().modify(user, messageId, modify).execute();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 }

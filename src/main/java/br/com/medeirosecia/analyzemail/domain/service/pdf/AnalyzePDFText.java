@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachment;
+import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
 
@@ -34,7 +34,7 @@ public class AnalyzePDFText {
             "documento de arrecadação", "pagar até", "pague com o pix"
     };
     
-    public AnalyzePDFText(EmailAttachment attachment){        
+    public AnalyzePDFText(EmailAttachmentDAO attachment){        
         this.readPDF= new ReadPDF(attachment);
         this.pdfText = this.readPDF.getPDFText();
         this.checkKeyWords();
@@ -171,18 +171,25 @@ public class AnalyzePDFText {
 
     public String getChaveDeAcesso(){   
         // blocks of 4 digits with two spaces, one dot or one space as separator
-        String regex = "\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}";
+        //String regex = "\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}";
+        String[] regexPatterns = {
+            "\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}", // 11 blocks of 4 digits with two or mores spaces as separators            
+            "\\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4}", // 11 blocks of 4 digits with one space as the separator
+            "\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}", // 11 blocks with dot as separator
+            "\\d{2}\\.\\d{4}\\.\\d{12}\\.\\d{2}\\.\\d{3}\\.\\d{9}\\.\\d{1}\\.\\d{8}\\.\\d{1}\\.\\d{8}" // números com outro padrão de blocos com ponto como separador
+        };
         
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(this.pdfText);
-        String found;
-        if(matcher.find()){
-            found = matcher.group();
-            found = found.replaceAll("\\.", " ");
-            found = found.replaceAll("\\\s+", " ");
-            return found;
-        }
-    
+        for (String regex : regexPatterns) {
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(this.pdfText);
+            String found;
+            if(matcher.find()){
+                found = matcher.group();
+                found = found.replaceAll("\\.", " ");
+                found = found.replaceAll("\\\s+", " ");
+                return found;
+            }            
+        }    
         return "";
     }
     
@@ -191,7 +198,7 @@ public class AnalyzePDFText {
         String targetWord = "chave de acesso";
         
         Pattern pattern1 = Pattern.compile("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}[\\\u2212\\-]?\\d{2}");
-        Matcher matcher = pattern1.matcher(this.pdfText);
+        Matcher matcher = pattern1.matcher(this.pdfText.toLowerCase());
         
         String cnpj = "";        
         String cnpjFound="";
