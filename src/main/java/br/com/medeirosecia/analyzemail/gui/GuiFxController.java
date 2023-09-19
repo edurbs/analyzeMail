@@ -156,12 +156,8 @@ public class GuiFxController implements Initializable {
         
         if(this.thread != null && this.thread.isAlive()) {
        
-            try {
-                
-                this.thread.interrupt();    
-                            
-                //labelProgress.setText("Finalizando!!!");
-                //this.thread.join(0);                
+            try {                
+                this.thread.interrupt();
                 
             } catch (Exception e) {
                 // TODO Auto-generated catch block

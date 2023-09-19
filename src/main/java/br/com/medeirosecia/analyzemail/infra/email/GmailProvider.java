@@ -113,10 +113,6 @@ public class GmailProvider implements EmailProvider {
 		return null;
 	}
 
-	// public void setEmailLabel(EmailLabelDAO label) {
-	// 	this.emailLabel = label;
-	// }
-
 	private List<EmailLabelDAO> listLabels() {
 		List<EmailLabelDAO> emailLabels = new ArrayList<>();
 
