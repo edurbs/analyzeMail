@@ -111,6 +111,7 @@ public class GmailProvider implements EmailProvider {
 			}
 		}
 		return null;
+		// TODO criar label automaticamente no gmail
 	}
 
 	private List<EmailLabelDAO> listLabels() {

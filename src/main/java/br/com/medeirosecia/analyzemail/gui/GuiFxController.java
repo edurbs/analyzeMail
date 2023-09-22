@@ -164,7 +164,7 @@ public class GuiFxController implements Initializable {
                 e.printStackTrace();
             }
         }
-        //restartButtons();
+
     }
 
     @Override
