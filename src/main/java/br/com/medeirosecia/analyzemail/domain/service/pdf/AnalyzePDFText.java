@@ -89,6 +89,7 @@ public class AnalyzePDFText {
     }
 
     public String[] getBoletoDate() {
+        String date = "00/00/0000";
         Parser parser = new Parser();        
         int vencimento = this.pdfText.indexOf("vencimento");
         String tempText = this.pdfText;
@@ -96,9 +97,13 @@ public class AnalyzePDFText {
             tempText = this.pdfText.substring(vencimento, this.pdfText.length());
         }
 
-        List<LocalDateModel> dates = parser.parse(tempText);
+        List<LocalDateModel> dates;
+        try {
+          dates = parser.parse(tempText);  
+        } catch (Exception e) {
+            return date.split("/");
+        } 
 
-        String date = "00/00/0000";
 
         // search for date 
         for (LocalDateModel localDateModel : dates) {
@@ -133,25 +138,28 @@ public class AnalyzePDFText {
 
         String dateOriginal = localDateModel.getOriginalText();
         this.setDateSplitter(dateOriginal);
-        String[] dateSplit = dateOriginal.split(this.dateSplitter);
+        String[] dateSplit = dateOriginal.split(this.dateSplitter);        
         String day = dateSplit[0];
-        if(day.length() == 1){
+        if(day.length() == 1 || day.isBlank()){
             return false;
         }
 
-        String[] date = converDateTime(localDateModel).split("/");
-        int year = Integer.parseInt(date[2]);
+        String[] date = convertDateTime(localDateModel).split("/");
+        int year;
+        try {
+            year = Integer.parseInt(date[2]);            
+        } catch (Exception e) {
+            return false;
+        }
         int thisYear = java.time.LocalDate.now().getYear();
-        if (year == thisYear + 1
-                    || year == thisYear - 1
-                    || year == thisYear) {
+        if (year >= thisYear - 4 && year <= thisYear + 4) {
             return true;
         }
 
         return isValid;
     }
 
-    private String converDateTime(LocalDateModel localDateModel){
+    private String convertDateTime(LocalDateModel localDateModel){
         String date = localDateModel.getOriginalText();
         this.setDateSplitter(date);
         String[] dateSplit = date.split(this.dateSplitter);
@@ -161,9 +169,8 @@ public class AnalyzePDFText {
                     +String.format("%02d",Integer.parseInt(dateSplit[1]))
                     +"/"
                     +String.format("%04d",Integer.parseInt(dateSplit[2]));            
-        } catch (Exception e) {
-            // TODO: handle exception
-            e.printStackTrace();
+        } catch (Exception e) {            
+            return "00/00/0000";
         }
         
         return date;

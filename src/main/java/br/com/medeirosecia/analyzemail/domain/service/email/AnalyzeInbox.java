@@ -15,9 +15,15 @@ public class AnalyzeInbox extends Task<Void> {
     
     
     private BaseFolders baseFolders;
-    private MyExcel myExcel;  
+
     private EmailProvider emailProvider;
     private String[] extensions = new String[] { "PDF", "XML" };
+    private String[] header = new String[]{"Dt.Emissão",
+                "CNPJ Emitente",
+                "Chave de acesso",
+                "Nome do arquivo"
+        };
+
     
     public AnalyzeInbox(BaseFolders baseFolders, EmailProvider emailProvider) {
         this.baseFolders = baseFolders;     
@@ -27,21 +33,12 @@ public class AnalyzeInbox extends Task<Void> {
 
     @Override
     public Void call() throws Exception {
-        EmailLabelDAO analizedLabel = emailProvider.getEmailLabel();
-        if(analizedLabel==null){
-            // TODO criar label automaticamente
+        EmailLabelDAO analyzedLabel = emailProvider.getEmailLabel();
+        if(analyzedLabel==null){            
             updateMessage("Etiqueta não encontrada!");
             return null;
         }
         
-        
-        String[] header = new String[]{"Dt.Emissão",
-                "CNPJ Emitente",
-                "Chave de acesso",
-                "Nome do arquivo"
-        };
-        this.myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx", header);
-     
 
         List<EmailMessageDAO> messages = emailProvider.getNotAnalyzedMessages();
         while(messages!=null && !messages.isEmpty()){
@@ -76,7 +73,7 @@ public class AnalyzeInbox extends Task<Void> {
 
         
         updateMessage("Não há mais mensagens para processar.");
-        myExcel.saveAndCloseWorkbook();
+
        
         return null;
 
@@ -86,11 +83,8 @@ public class AnalyzeInbox extends Task<Void> {
        
         
         List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(emailMessage, extensions);        
-        attachments.stream().forEach(att -> {
-           
-            analyzeAttachment(att);           
-                            
-        });            
+        
+        attachments.stream().forEach(this::analyzeAttachment);
         
         
     }
@@ -98,6 +92,7 @@ public class AnalyzeInbox extends Task<Void> {
 
         String filename = attachment.getFileName();
         String extension = getExtension(filename);       
+        
         
         if(!extension.isEmpty()){
 
@@ -124,7 +119,7 @@ public class AnalyzeInbox extends Task<Void> {
             }else if(extension.equals("XML")){
                 baseFolders.saveXml(attachment);                
                 
-            } 
+            }
         }
         
     }          
@@ -142,7 +137,8 @@ public class AnalyzeInbox extends Task<Void> {
     }
 
     private void writeItAsExcel(AnalyzePDFText analyzePDF) {
-
+        
+        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx", header);
         String[] date = analyzePDF.getDataEmissao();
         String dataEmissao = date[0] + "/" + date[1] + "/" + date[2];
         String row[] = new String[] { dataEmissao,
@@ -150,7 +146,9 @@ public class AnalyzeInbox extends Task<Void> {
                 analyzePDF.getChaveDeAcesso(),
                 analyzePDF.getFileName()
         };
-        this.myExcel.addRow(row);
+        myExcel.addRow(row);
+        myExcel.saveAndCloseWorkbook();
+        
     }
     
 }
