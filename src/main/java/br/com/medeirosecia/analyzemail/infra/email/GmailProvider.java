@@ -136,14 +136,14 @@ public class GmailProvider implements EmailProvider {
 		return emailLabels;
 	}
 
-	public List<EmailMessageDAO> getNotAnalyzedMessages() {
+	public List<EmailMessageDAO> getMessages() {
 		List<Message> messages = new ArrayList<>();
 		if (this.service != null) {
 			try {
 				ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
 						.setQ("!label:" + ANALYZED_MAIL)
 						.execute();
-				messages = listMessageResponse.getMessages();
+				messages = listMessageResponse.getMessages();				
 
 			} catch (Exception e) {
 				e.printStackTrace();

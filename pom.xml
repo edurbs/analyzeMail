@@ -196,9 +196,20 @@
 			<version>1.43.3</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/com.google.http-client/google-http-client -->
 
-	
+
+		<dependency>
+			<groupId>net.sf.sevenzipjbinding</groupId>
+			<artifactId>sevenzipjbinding</artifactId>
+			<version>16.02-2.01</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.sevenzipjbinding</groupId>
+			<artifactId>sevenzipjbinding-all-platforms</artifactId>
+			<version>16.02-2.01</version>
+		</dependency>
+
+
 	</dependencies>
 	<build>
 		<plugins>

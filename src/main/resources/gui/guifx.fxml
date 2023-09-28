@@ -104,6 +104,9 @@
                </HBox.margin>
             </Button>
          </children>
+         <VBox.margin>
+            <Insets bottom="5.0" top="5.0" />
+         </VBox.margin>
       </HBox>
       <HBox fx:id="hboxDebug" alignment="CENTER_LEFT" prefHeight="32.0" prefWidth="384.0">
          <children>

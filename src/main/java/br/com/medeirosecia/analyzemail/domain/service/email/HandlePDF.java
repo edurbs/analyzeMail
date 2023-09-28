@@ -1,5 +1,11 @@
-package br.com.medeirosecia.analyzemail.domain.service.pdf;
+package br.com.medeirosecia.analyzemail.domain.service.email;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -9,23 +15,36 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.input.CloseShieldInputStream;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
+import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
+import net.sourceforge.tess4j.Tesseract;
 
-public class AnalyzePDFText {
+public class HandlePDF implements HandleAttachmentType {
+
     private String pdfText;
     private String dateSplitter = "";
-    private ReadPDF readPDF;
+    private BaseFolders baseFolders;
+
+    private PDDocument pdfDocument;
+    private EmailAttachmentDAO emailAttachmentDAO;
     private int keywordsFoundToBeNF = 0;
     private int keywordsFoundToBeNfse = 0;
     private int keywordsFoundToBeBoleto = 0;
-    private String[] nfKeywords = { "nota fiscal", "serviços eletrônica", "emissão", "tomador de",
-            "prestador de", "rps", "iss", "nfs-e", "autenticidade", "danfe", "documento auxiliar", "controle do fisco",
+    private String[] nfKeywords = { "nota fiscal", "emissão", 
+            "autenticidade", "danfe", "documento auxiliar", "controle do fisco",
             "chave de acesso", "natureza da operação", "protocolo de autorização", "destinatário", "emitente",
-            "dados dos produtos", "serviços" };
-    private String[] nfseKeywords = { "tomador", "serviços", "prestador", "nfs-e", "rps", "iss", "prefeitura",
-            "municipal", "issqn" };
+            "dados dos produtos" };
+    private String[] nfseKeywords = { "tomador", "serviço", "prestador", "nfs-e", "rps", "iss", "prefeitura",
+            "municipal", "issqn", "serviços eletrônica", "nota fiscal eletrônica de serviços", "Nota fiscal de serviço", "Nota fiscal avulsa" };
     private String[] boletoKeywords = { "vencimento", "cedente", "referência", "pagador", "beneficiário",
             "nosso número", "valor do documento", "data do processamento", "mora", "multa", "juros", "carteira",
             "título", "pagável", "sacado", "débito automático", "total a pagar", "mês de referência",
@@ -33,33 +52,136 @@ public class AnalyzePDFText {
             "autenticação mecânica", "período de apuração", "número do documento", "pagar este documento até",
             "documento de arrecadação", "pagar até", "pague com o pix"
     };
+
     
-    public AnalyzePDFText(EmailAttachmentDAO attachment){        
-        this.readPDF= new ReadPDF(attachment);
-        this.pdfText = this.readPDF.getPDFText();
-        this.checkKeyWords();
+    @Override
+    public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO, BaseFolders baseFolders) {        
+        this.emailAttachmentDAO = emailAttachmentDAO;
+        this.baseFolders = baseFolders;
+
+        readPDF();
+        checkKeyWords();        
+
+        if(isNfs()){
+            baseFolders.savePdfNfs(emailAttachmentDAO, getDateNfs());
+        }else if(isNF()){                    
+            baseFolders.savePdfNF(emailAttachmentDAO, getDateNf());            
+            writeItAsExcel();        
+        }else if(isBoleto()){            
+            baseFolders.savePdfBoleto(emailAttachmentDAO, getBoletoDate());            
+        }else{            
+            baseFolders.savePdfOthers(emailAttachmentDAO);            
+        }
+
     }
 
-    public String getFileName(){        
-        return this.readPDF.getFileName();
+    private void writeItAsExcel() {
+        String[] header = new String[]{"Dt.Emissão",
+            "CNPJ Emitente",
+            "Chave de acesso",
+            "Nome do arquivo"
+        };
+
+        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx");
+        myExcel.openWorkbook(header);
+
+        String[] date = getDateNf();
+        String dataEmissao = date[0] + "/" + date[1] + "/" + date[2];
+        String[] row = new String[] { dataEmissao,
+                getCNPJEmitente(),
+                getChaveDeAcesso(),
+                getFileName()
+        };
+        myExcel.addRow(row);
+        try {
+            myExcel.saveAndCloseWorkbook();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+    }
+
+    public void readPDF() {
+        try {            
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(this.emailAttachmentDAO.getData());
+            this.processPDF(inputStream);
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    
+    }
+
+    private void processPDF(InputStream inputStream) {
+        
+        try {
+            this.pdfDocument = PDDocument.load(CloseShieldInputStream.wrap(inputStream));
+            PDFTextStripper pdfTextStripper = new PDFTextStripper();
+           
+            this.pdfText = pdfTextStripper.getText(this.pdfDocument).toLowerCase();
+            
+            if(this.pdfText.length()<10){
+                String text = this.getOCR();
+                this.pdfText = text;
+            }  
+
+            this.pdfDocument.close();
+        } catch (IOException  e) {
+            this.pdfText = "";
+        }   
+        
+    }
+
+    private String getOCR()  {
+       
+        try {
+            PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+            BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);
+    
+            Tesseract tesseract = new Tesseract();
+    
+            URL url = HandlePDF.class.getResource("/tesseract/fast/");
+            String tessractDataPath = Paths.get(url.toURI()).toString();
+            tesseract.setDatapath(tessractDataPath);
+    
+            tesseract.setLanguage("por");
+            tesseract.setPageSegMode(1); // Automatic Page Segmentation with OSD
+            
+            String result = tesseract.doOCR(bufferedImage);            
+            return result.toLowerCase();
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public String getFileName(){
+        return this.emailAttachmentDAO.getFileName();
+
     }
 
     public boolean isNF() {
-        if (keywordsFoundToBeNF > 5 && keywordsFoundToBeNF > keywordsFoundToBeBoleto) {
+        if (keywordsFoundToBeNF > 6 
+                && keywordsFoundToBeNF > keywordsFoundToBeBoleto) {
             return true;
         }
         return false;
     }
 
-    public boolean isNfse() {
-        if (keywordsFoundToBeNfse > 6 && this.isNF()) {
+    public boolean isNfs() {
+        if (keywordsFoundToBeNfse > 6
+                && keywordsFoundToBeNfse > keywordsFoundToBeBoleto) {
             return true;
         }
         return false;
     }
 
     public boolean isBoleto() {
-        if (keywordsFoundToBeBoleto > 5 && keywordsFoundToBeBoleto > keywordsFoundToBeNF) {
+        if (keywordsFoundToBeBoleto > 5 
+                && keywordsFoundToBeBoleto > keywordsFoundToBeNF 
+                && keywordsFoundToBeBoleto > keywordsFoundToBeNfse) {
             return true;
         }
         return false;
@@ -67,21 +189,24 @@ public class AnalyzePDFText {
     
     
     private void checkKeyWords() {
+        this.keywordsFoundToBeNF=0;
+        this.keywordsFoundToBeBoleto=0;
+        this.keywordsFoundToBeNfse=0;
 
         for (String keyword : this.nfKeywords) {
-            if (this.pdfText.contains(keyword)) {
+            if (this.pdfText.contains(keyword.toLowerCase())) {
                 this.keywordsFoundToBeNF++;
             }
         }
 
         for (String keyword : this.boletoKeywords) {
-            if (this.pdfText.contains(keyword)) {
+            if (this.pdfText.contains(keyword.toLowerCase())) {
                 this.keywordsFoundToBeBoleto++;
             }
         }
 
         for (String keyword : this.nfseKeywords) {
-            if (this.pdfText.contains(keyword)) {
+            if (this.pdfText.contains(keyword.toLowerCase())) {
                 this.keywordsFoundToBeNfse++;
             }
         }
@@ -177,8 +302,7 @@ public class AnalyzePDFText {
     }
 
     public String getChaveDeAcesso(){   
-        // blocks of 4 digits with two spaces, one dot or one space as separator
-        //String regex = "\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}";
+
         String[] regexPatterns = {
             "\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}", // 11 blocks of 4 digits with two or mores spaces as separators            
             "\\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4}", // 11 blocks of 4 digits with one space as the separator
@@ -239,9 +363,33 @@ public class AnalyzePDFText {
         return cnpj;
     }
 
-    public String[] getDataEmissao(){
+    public String[] getDateNf(){
+        return this.getDateNear("autorização");
+    }
+
+    public String[] getDateNfs(){
+
+        String[] date = {"01", "01", "0001"};
+        String[] findStrings = {"Data e Hora da emissão da NFS-e",
+                "Data e Hora de emiss",
+                "Emissão da nota",
+                "Data emissão",
+                "Data"
+        };
+        for (String string : findStrings) {
+            var dateNear = getDateNear(string);
+            if(!dateNear[2].equals("0001")){
+                date = dateNear;
+                break;
+            }
+        }
+      
+        return date;
+    }
+
+    public String[] getDateNear(String targetWord){
         
-        String targetWord = "autorização";
+        targetWord = targetWord.toLowerCase();        
 
         // date with - / or . as separator
         Pattern pattern = Pattern.compile("\\d{2}[-/\\.]\\d{2}[-/\\.]\\d{4}");
@@ -252,10 +400,11 @@ public class AnalyzePDFText {
         SimpleDateFormat dateFormat3 = new SimpleDateFormat("dd.MM.yyyy");
 
         Date closestDate = null;
-        Date date;
         int lastHowFar = Integer.MAX_VALUE;
         try {
             
+            Date date = dateFormat1.parse("01-01-0001");
+
             while (matcher.find()) {
                 String dataStr = matcher.group();
                 
@@ -266,9 +415,7 @@ public class AnalyzePDFText {
                     date = dateFormat2.parse(dataStr);
                 } else if (dataStr.contains(".")) {
                     date = dateFormat3.parse(dataStr);
-                } else{
-                    date = dateFormat1.parse("01-01-0000");
-                }
+                } 
     
                 // Encontre a posição da palavra "emissão" no texto
                 int indexOfEmissao = this.pdfText.indexOf(targetWord);
@@ -310,4 +457,7 @@ public class AnalyzePDFText {
     
     }
 
+
+
+    
 }

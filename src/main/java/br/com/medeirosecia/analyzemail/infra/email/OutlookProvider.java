@@ -91,10 +91,10 @@ public class OutlookProvider implements EmailProvider {
     }
 
     @Override
-    public List<EmailMessageDAO> getNotAnalyzedMessages() {
+    public List<EmailMessageDAO> getMessages() {
         List<EmailMessageDAO> list = new ArrayList<>();
         
-        String filter = "categories/any(c:c ne '" + ANALYZED_MAIL + "')";
+        String filter = "categories/any(c:c ne '" + ANALYZED_MAIL + "')";            
 
         MailFolderCollectionPage mailFolders = graphClient.users(sharedMailboxId).mailFolders().buildRequest().top(10000).get();
         
