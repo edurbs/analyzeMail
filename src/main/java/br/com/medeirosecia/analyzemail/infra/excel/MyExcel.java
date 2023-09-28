@@ -17,37 +17,35 @@ public class MyExcel {
     private Sheet sheet;
     
     private String filePath;
-    private String[] header;
 
-    public MyExcel(BaseFolders localFileSystem, String fileName, String[] header){
-        this.header = header;
-   
+
+    public MyExcel(BaseFolders localFileSystem, String fileName ){
+
         this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
-        this.openWorkbook();
+        
     }
 
-    private void openWorkbook(){
+    public void justOpen() throws IOException{
         // check if file exists        
         File file = new File(this.filePath);
-        if(file.exists()){            
-            try {
-                this.workbook = new XSSFWorkbook(new FileInputStream(this.filePath));
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }            
+        if(file.exists()){                       
+            this.workbook = new XSSFWorkbook(new FileInputStream(this.filePath));                      
         }else{
             this.workbook = new XSSFWorkbook();
         }
+    }
+
+    public void openWorkbook(String[] header){
         try {
+            this.justOpen();
             if(this.workbook.getNumberOfSheets() == 0){
                 this.workbook.createSheet("PlanilhaNF-AnalyzedMail");                    
             }
             this.sheet = this.workbook.getSheetAt(0);
 
             // check if there is a header, if not create the first row as header
-            if(headerNotExists() && this.header!=null){
-                this.addHeader();
+            if(headerNotExists() && header!=null){
+                this.addHeader(header);
             }
         } catch (Exception e) {
             // TODO: handle exception
@@ -63,26 +61,24 @@ public class MyExcel {
         return false;
     }
 
-    private void addHeader(){
+    private void addHeader(String[] header){
         this.sheet.createRow(0);
-        this.sheet.getRow(0).createCell(0).setCellValue(this.header[0]);
-        this.sheet.getRow(0).createCell(1).setCellValue(this.header[1]);
-        this.sheet.getRow(0).createCell(2).setCellValue(this.header[2]);
-        this.sheet.getRow(0).createCell(3).setCellValue(this.header[3]);
+        this.sheet.getRow(0).createCell(0).setCellValue(header[0]);
+        this.sheet.getRow(0).createCell(1).setCellValue(header[1]);
+        this.sheet.getRow(0).createCell(2).setCellValue(header[2]);
+        this.sheet.getRow(0).createCell(3).setCellValue(header[3]);
 
     }
 
     
 
-    public void saveAndCloseWorkbook(){
+    public void saveAndCloseWorkbook() throws IOException{
         
-        try (FileOutputStream outputStream = new FileOutputStream(this.filePath)) {
-            this.workbook.write(outputStream);
-            this.workbook.close();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        FileOutputStream outputStream = new FileOutputStream(this.filePath);
+        this.workbook.write(outputStream);
+        this.workbook.close();
+        
+        outputStream.close();
         
     }
 

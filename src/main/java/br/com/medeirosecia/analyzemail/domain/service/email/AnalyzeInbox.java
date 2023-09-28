@@ -1,5 +1,6 @@
 package br.com.medeirosecia.analyzemail.domain.service.email;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
+import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import javafx.concurrent.Task;
 
@@ -26,6 +28,17 @@ public class AnalyzeInbox extends Task<Void> {
 
     @Override
     public Void call() throws Exception {
+
+        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx");
+        try {
+            myExcel.justOpen();            
+            myExcel.saveAndCloseWorkbook();
+        } catch (IOException e) {
+            updateMessage("Planilha de excel está aberta ou com erro. Feche ou exclua a planilha.");
+            Thread.currentThread().interrupt();
+            return null;
+        }
+
 
         Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();        
             extensionsMap.put("PDF", new HandlePDF());
@@ -86,10 +99,7 @@ public class AnalyzeInbox extends Task<Void> {
             }
         }
 
-        
-        updateMessage("Não há mais mensagens para processar.");
-
-       
+        updateMessage("Finalizado.");
         return null;
 
     }    

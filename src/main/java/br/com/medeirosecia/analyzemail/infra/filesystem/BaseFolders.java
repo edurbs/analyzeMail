@@ -6,31 +6,31 @@ import java.io.FileOutputStream;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 
 public class BaseFolders {
-    //private String baseFolder=System.getProperty("user.dir");
-    //private String baseFolder="\\temp\\email";
+
     private String baseFolder;
 
     private String pdfFolder;
 
     private String boletoFolder;
     private String nfFolder;
+    private String nfsFolder;
     private String pdfOthersFolder;
 
     private String xmlFolder;
 
-    //private String localCredentialsFolder=baseFolder+"\\credentials";
     private String pathCredentials;
 
     public void setBaseFolder(String baseFolder) {
         this.baseFolder = baseFolder;
 
-        pdfFolder=baseFolder+"\\pdf";
+        this.pdfFolder=baseFolder+"\\pdf";
 
-        boletoFolder=pdfFolder+"\\boleto";
-        nfFolder=pdfFolder+"\\nf";
-        pdfOthersFolder=pdfFolder+"\\outros";
+        this.boletoFolder=pdfFolder+"\\boleto";
+        this.nfFolder=pdfFolder+"\\nf";
+        this.nfsFolder=pdfFolder+"\\nfs";
+        this.pdfOthersFolder=pdfFolder+"\\outros";
 
-        xmlFolder=baseFolder+"\\xml";
+        this.xmlFolder=baseFolder+"\\xml";
     }
 
     public String getPathCredentials() {
@@ -46,13 +46,19 @@ public class BaseFolders {
     }
 
     public String savePdfNF(EmailAttachmentDAO attachment, String[] date){
-        String groupFolder = this.getNfGroupFolder(date[2], date[1]);
+        String groupFolder = this.getGroupFolder(date[2], date[1], this.nfFolder);
+        this.createFolder(groupFolder);
+        return this.saveAttachment(attachment, groupFolder);
+    }
+
+    public String savePdfNfs(EmailAttachmentDAO attachment, String[] date){
+        String groupFolder = this.getGroupFolder(date[2], date[1], this.nfsFolder);
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
 
     public String savePdfBoleto(EmailAttachmentDAO attachment, String[] date){
-        String groupFolder = this.getBoletoGroupFolder(date[2], date[1]);   
+        String groupFolder = this.getGroupFolder(date[2], date[1], this.boletoFolder);   
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
@@ -107,15 +113,7 @@ public class BaseFolders {
         }
     }
 
-    private String getBoletoGroupFolder(String year, String month){
-        return getGroupGolder(year,month,this.boletoFolder);
-    }
-
-    private String getNfGroupFolder(String year, String month){
-        return getGroupGolder(year,month,this.nfFolder);
-    }
-
-    private String getGroupGolder(String year, String month, String folder){
+    private String getGroupFolder(String year, String month, String folder){
         return folder+"\\"+year+"\\"+month;        
     }
 }

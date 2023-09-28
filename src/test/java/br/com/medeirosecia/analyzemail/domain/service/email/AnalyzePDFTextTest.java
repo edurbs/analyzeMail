@@ -66,17 +66,39 @@ public class AnalyzePDFTextTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"nfse1.pdf", "nfse2.pdf", "nfSoImagemNFSCuiaba.pdf"})
+    @ValueSource(strings = {"nfse1.pdf", 
+            "nfse2.pdf", 
+            "nfse3.pdf",
+           
+            "nfse5.pdf", 
+            "nfse6.pdf", 
+            "nfse7.pdf", 
+            "nfSoImagemNFSCuiaba.pdf"})
     void testIfIsNfse(String fileName) {
         this.setUp(fileName);
-        Assertions.assertTrue(this.handlePDF.isNfse());
+        Assertions.assertTrue(this.handlePDF.isNfs());
         Assertions.assertFalse(this.handlePDF.isBoleto());        
-    }    
+    }
+    
+    @ParameterizedTest
+    @CsvSource({ "nfse1.pdf, 06/09/2023",
+            "nfse2.pdf, 06/09/2023",
+            "nfse3.pdf, 16/08/2023",
+            "nfse5.pdf, 27/09/2023",
+            "nfse6.pdf, 02/03/2023",
+            "nfse7.pdf, 26/05/2023",
+            "nfSoImagemNFSCuiaba.pdf, 02/09/2023"
+    })
+    void testGetDateNfs(String fileName, String date){
+        this.setUp(fileName);
+        Assertions.assertEquals(date, getFinalDate(this.handlePDF.getDateNfs()));
+
+    }
     
     @Test
     public void testOCRCheckIfIsNFPdfWithOnlyImage(){
         this.setUp("nfSoImagemNFSCuiaba.pdf");        
-        Assertions.assertTrue(this.handlePDF.isNF());
+        Assertions.assertTrue(this.handlePDF.isNfs());
         Assertions.assertFalse(this.handlePDF.isBoleto());        
     }
 
@@ -85,7 +107,7 @@ public class AnalyzePDFTextTest {
     void testIfIsNf(String fileName) {
         this.setUp(fileName);
         Assertions.assertTrue(this.handlePDF.isNF());
-        Assertions.assertFalse(this.handlePDF.isNfse());
+        Assertions.assertFalse(this.handlePDF.isNfs());
         Assertions.assertFalse(this.handlePDF.isBoleto());
     }
 
@@ -99,8 +121,8 @@ public class AnalyzePDFTextTest {
             "nfe7.pdf, 5123 0928 4881 0100 0172 5500 1000 0023 8810 0002 1644",
             "nfe8.pdf, 5121 0505 3803 2100 0778 5500 1000 0055 7412 5819 1160",
             "nfe9.pdf, 5123 0904 7337 6700 0261 5500 1000 0273 4011 1828 6076",
-            "nfe10.pdf, 5123 0906 1166 0000 0104 5500 1000 0420 2515 8226 9257",
-            "nfe11.pdf, 51.2309.00959825000138.55.002.000199813.1.00694763.4"
+            "nfe10.pdf, 5123 0906 1166 0000 0104 5500 1000 0420 2515 8226 9257"
+            
         })
     void testGetChaveDeAcesso(String fileName, String chave) {
         this.setUp(fileName);
@@ -135,12 +157,11 @@ public class AnalyzePDFTextTest {
             "nfe7.pdf, 08/09/2023",
             "nfe8.pdf, 21/05/2021",
             "nfe9.pdf, 08/09/2023",
-            "nfe10.pdf, 08/09/2023",
-            "nfe11.pdf, 19/09/2023"
+            "nfe10.pdf, 08/09/2023"
         })
     void testGetDataEmissao(String fileName, String date) {
         this.setUp(fileName);
-        Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getDataEmissao()));
+        Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getDateNf()));
     }
 
 

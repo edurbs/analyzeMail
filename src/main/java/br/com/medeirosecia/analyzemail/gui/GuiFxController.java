@@ -110,15 +110,13 @@ public class GuiFxController implements Initializable {
 
         task.setOnFailed(w -> {
 
-            this.restartButtons();
-            this.labelProgress.setText("Finalizado com erros");
+            this.restartButtons();            
             w.getSource().getException().printStackTrace();
         });
 
         task.setOnSucceeded(w -> {
 
-            this.restartButtons();
-            this.labelProgress.setText("Finalizado");
+            this.restartButtons();            
         });
 
         progressBar.progressProperty().bind(task.progressProperty());
@@ -154,7 +152,7 @@ public class GuiFxController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // TODO Auto-generated method stub
+        
 
         this.configFile = new ConfigFile();
 

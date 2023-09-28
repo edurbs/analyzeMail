@@ -39,12 +39,12 @@ public class HandlePDF implements HandleAttachmentType {
     private int keywordsFoundToBeNF = 0;
     private int keywordsFoundToBeNfse = 0;
     private int keywordsFoundToBeBoleto = 0;
-    private String[] nfKeywords = { "nota fiscal", "serviços eletrônica", "emissão", "tomador de",
-            "prestador de", "rps", "iss", "nfs-e", "autenticidade", "danfe", "documento auxiliar", "controle do fisco",
+    private String[] nfKeywords = { "nota fiscal", "emissão", 
+            "autenticidade", "danfe", "documento auxiliar", "controle do fisco",
             "chave de acesso", "natureza da operação", "protocolo de autorização", "destinatário", "emitente",
-            "dados dos produtos", "serviços" };
-    private String[] nfseKeywords = { "tomador", "serviços", "prestador", "nfs-e", "rps", "iss", "prefeitura",
-            "municipal", "issqn" };
+            "dados dos produtos" };
+    private String[] nfseKeywords = { "tomador", "serviço", "prestador", "nfs-e", "rps", "iss", "prefeitura",
+            "municipal", "issqn", "serviços eletrônica", "nota fiscal eletrônica de serviços", "Nota fiscal de serviço", "Nota fiscal avulsa" };
     private String[] boletoKeywords = { "vencimento", "cedente", "referência", "pagador", "beneficiário",
             "nosso número", "valor do documento", "data do processamento", "mora", "multa", "juros", "carteira",
             "título", "pagável", "sacado", "débito automático", "total a pagar", "mês de referência",
@@ -60,16 +60,16 @@ public class HandlePDF implements HandleAttachmentType {
         this.baseFolders = baseFolders;
 
         readPDF();
+        checkKeyWords();        
 
-        checkKeyWords();
-
-        if(isNF()){                    
-            baseFolders.savePdfNF(emailAttachmentDAO, getDataEmissao());            
+        if(isNfs()){
+            baseFolders.savePdfNfs(emailAttachmentDAO, getDateNfs());
+        }else if(isNF()){                    
+            baseFolders.savePdfNF(emailAttachmentDAO, getDateNf());            
             writeItAsExcel();        
         }else if(isBoleto()){            
             baseFolders.savePdfBoleto(emailAttachmentDAO, getBoletoDate());            
-        } 
-        else{            
+        }else{            
             baseFolders.savePdfOthers(emailAttachmentDAO);            
         }
 
@@ -82,8 +82,10 @@ public class HandlePDF implements HandleAttachmentType {
             "Nome do arquivo"
         };
 
-        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx", header);
-        String[] date = getDataEmissao();
+        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx");
+        myExcel.openWorkbook(header);
+
+        String[] date = getDateNf();
         String dataEmissao = date[0] + "/" + date[1] + "/" + date[2];
         String[] row = new String[] { dataEmissao,
                 getCNPJEmitente(),
@@ -91,7 +93,12 @@ public class HandlePDF implements HandleAttachmentType {
                 getFileName()
         };
         myExcel.addRow(row);
-        myExcel.saveAndCloseWorkbook();
+        try {
+            myExcel.saveAndCloseWorkbook();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
     }
 
@@ -106,26 +113,23 @@ public class HandlePDF implements HandleAttachmentType {
     
     }
 
-        private void processPDF(InputStream inputStream) {
+    private void processPDF(InputStream inputStream) {
         
         try {
             this.pdfDocument = PDDocument.load(CloseShieldInputStream.wrap(inputStream));
             PDFTextStripper pdfTextStripper = new PDFTextStripper();
            
             this.pdfText = pdfTextStripper.getText(this.pdfDocument).toLowerCase();
-
-            // if PDF has no text, works with OCR
+            
             if(this.pdfText.length()<10){
                 String text = this.getOCR();
                 this.pdfText = text;
-            }
-            
+            }  
+
             this.pdfDocument.close();
         } catch (IOException  e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }        
-
+            this.pdfText = "";
+        }   
         
     }
 
@@ -159,21 +163,25 @@ public class HandlePDF implements HandleAttachmentType {
     }
 
     public boolean isNF() {
-        if (keywordsFoundToBeNF > 5 && keywordsFoundToBeNF > keywordsFoundToBeBoleto) {
+        if (keywordsFoundToBeNF > 6 
+                && keywordsFoundToBeNF > keywordsFoundToBeBoleto) {
             return true;
         }
         return false;
     }
 
-    public boolean isNfse() {
-        if (keywordsFoundToBeNfse > 6 && this.isNF()) {
+    public boolean isNfs() {
+        if (keywordsFoundToBeNfse > 6
+                && keywordsFoundToBeNfse > keywordsFoundToBeBoleto) {
             return true;
         }
         return false;
     }
 
     public boolean isBoleto() {
-        if (keywordsFoundToBeBoleto > 5 && keywordsFoundToBeBoleto > keywordsFoundToBeNF) {
+        if (keywordsFoundToBeBoleto > 5 
+                && keywordsFoundToBeBoleto > keywordsFoundToBeNF 
+                && keywordsFoundToBeBoleto > keywordsFoundToBeNfse) {
             return true;
         }
         return false;
@@ -181,21 +189,24 @@ public class HandlePDF implements HandleAttachmentType {
     
     
     private void checkKeyWords() {
+        this.keywordsFoundToBeNF=0;
+        this.keywordsFoundToBeBoleto=0;
+        this.keywordsFoundToBeNfse=0;
 
         for (String keyword : this.nfKeywords) {
-            if (this.pdfText.contains(keyword)) {
+            if (this.pdfText.contains(keyword.toLowerCase())) {
                 this.keywordsFoundToBeNF++;
             }
         }
 
         for (String keyword : this.boletoKeywords) {
-            if (this.pdfText.contains(keyword)) {
+            if (this.pdfText.contains(keyword.toLowerCase())) {
                 this.keywordsFoundToBeBoleto++;
             }
         }
 
         for (String keyword : this.nfseKeywords) {
-            if (this.pdfText.contains(keyword)) {
+            if (this.pdfText.contains(keyword.toLowerCase())) {
                 this.keywordsFoundToBeNfse++;
             }
         }
@@ -352,9 +363,33 @@ public class HandlePDF implements HandleAttachmentType {
         return cnpj;
     }
 
-    public String[] getDataEmissao(){
+    public String[] getDateNf(){
+        return this.getDateNear("autorização");
+    }
+
+    public String[] getDateNfs(){
+
+        String[] date = {"01", "01", "0001"};
+        String[] findStrings = {"Data e Hora da emissão da NFS-e",
+                "Data e Hora de emiss",
+                "Emissão da nota",
+                "Data emissão",
+                "Data"
+        };
+        for (String string : findStrings) {
+            var dateNear = getDateNear(string);
+            if(!dateNear[2].equals("0001")){
+                date = dateNear;
+                break;
+            }
+        }
+      
+        return date;
+    }
+
+    public String[] getDateNear(String targetWord){
         
-        String targetWord = "autorização";
+        targetWord = targetWord.toLowerCase();        
 
         // date with - / or . as separator
         Pattern pattern = Pattern.compile("\\d{2}[-/\\.]\\d{2}[-/\\.]\\d{4}");
@@ -365,10 +400,11 @@ public class HandlePDF implements HandleAttachmentType {
         SimpleDateFormat dateFormat3 = new SimpleDateFormat("dd.MM.yyyy");
 
         Date closestDate = null;
-        Date date;
         int lastHowFar = Integer.MAX_VALUE;
         try {
             
+            Date date = dateFormat1.parse("01-01-0001");
+
             while (matcher.find()) {
                 String dataStr = matcher.group();
                 
@@ -379,9 +415,7 @@ public class HandlePDF implements HandleAttachmentType {
                     date = dateFormat2.parse(dataStr);
                 } else if (dataStr.contains(".")) {
                     date = dateFormat3.parse(dataStr);
-                } else{
-                    date = dateFormat1.parse("01-01-0000");
-                }
+                } 
     
                 // Encontre a posição da palavra "emissão" no texto
                 int indexOfEmissao = this.pdfText.indexOf(targetWord);
