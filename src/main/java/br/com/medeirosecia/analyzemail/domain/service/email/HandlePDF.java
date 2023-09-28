@@ -1,5 +1,11 @@
-package br.com.medeirosecia.analyzemail.domain.service.pdf;
+package br.com.medeirosecia.analyzemail.domain.service.email;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -9,14 +15,27 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.input.CloseShieldInputStream;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
+import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import net.rationalminds.LocalDateModel;
 import net.rationalminds.Parser;
+import net.sourceforge.tess4j.Tesseract;
 
-public class AnalyzePDFText {
+public class HandlePDF implements HandleAttachmentType {
+
     private String pdfText;
     private String dateSplitter = "";
-    private ReadPDF readPDF;
+    private BaseFolders baseFolders;
+
+    private PDDocument pdfDocument;
+    private EmailAttachmentDAO emailAttachmentDAO;
     private int keywordsFoundToBeNF = 0;
     private int keywordsFoundToBeNfse = 0;
     private int keywordsFoundToBeBoleto = 0;
@@ -33,15 +52,110 @@ public class AnalyzePDFText {
             "autenticação mecânica", "período de apuração", "número do documento", "pagar este documento até",
             "documento de arrecadação", "pagar até", "pague com o pix"
     };
+
     
-    public AnalyzePDFText(EmailAttachmentDAO attachment){        
-        this.readPDF= new ReadPDF(attachment);
-        this.pdfText = this.readPDF.getPDFText();
-        this.checkKeyWords();
+    @Override
+    public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO, BaseFolders baseFolders) {        
+        this.emailAttachmentDAO = emailAttachmentDAO;
+        this.baseFolders = baseFolders;
+
+        readPDF();
+
+        checkKeyWords();
+
+        if(isNF()){                    
+            baseFolders.savePdfNF(emailAttachmentDAO, getDataEmissao());            
+            writeItAsExcel();        
+        }else if(isBoleto()){            
+            baseFolders.savePdfBoleto(emailAttachmentDAO, getBoletoDate());            
+        } 
+        else{            
+            baseFolders.savePdfOthers(emailAttachmentDAO);            
+        }
+
     }
 
-    public String getFileName(){        
-        return this.readPDF.getFileName();
+    private void writeItAsExcel() {
+        String[] header = new String[]{"Dt.Emissão",
+            "CNPJ Emitente",
+            "Chave de acesso",
+            "Nome do arquivo"
+        };
+
+        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx", header);
+        String[] date = getDataEmissao();
+        String dataEmissao = date[0] + "/" + date[1] + "/" + date[2];
+        String[] row = new String[] { dataEmissao,
+                getCNPJEmitente(),
+                getChaveDeAcesso(),
+                getFileName()
+        };
+        myExcel.addRow(row);
+        myExcel.saveAndCloseWorkbook();
+        
+    }
+
+    public void readPDF() {
+        try {            
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(this.emailAttachmentDAO.getData());
+            this.processPDF(inputStream);
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    
+    }
+
+        private void processPDF(InputStream inputStream) {
+        
+        try {
+            this.pdfDocument = PDDocument.load(CloseShieldInputStream.wrap(inputStream));
+            PDFTextStripper pdfTextStripper = new PDFTextStripper();
+           
+            this.pdfText = pdfTextStripper.getText(this.pdfDocument).toLowerCase();
+
+            // if PDF has no text, works with OCR
+            if(this.pdfText.length()<10){
+                String text = this.getOCR();
+                this.pdfText = text;
+            }
+            
+            this.pdfDocument.close();
+        } catch (IOException  e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }        
+
+        
+    }
+
+    private String getOCR()  {
+       
+        try {
+            PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
+            BufferedImage bufferedImage = pdfRenderer.renderImageWithDPI(0, 300, ImageType.GRAY);
+    
+            Tesseract tesseract = new Tesseract();
+    
+            URL url = HandlePDF.class.getResource("/tesseract/fast/");
+            String tessractDataPath = Paths.get(url.toURI()).toString();
+            tesseract.setDatapath(tessractDataPath);
+    
+            tesseract.setLanguage("por");
+            tesseract.setPageSegMode(1); // Automatic Page Segmentation with OSD
+            
+            String result = tesseract.doOCR(bufferedImage);            
+            return result.toLowerCase();
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public String getFileName(){
+        return this.emailAttachmentDAO.getFileName();
+
     }
 
     public boolean isNF() {
@@ -177,8 +291,7 @@ public class AnalyzePDFText {
     }
 
     public String getChaveDeAcesso(){   
-        // blocks of 4 digits with two spaces, one dot or one space as separator
-        //String regex = "\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}[\\s.]+\\d{4}";
+
         String[] regexPatterns = {
             "\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}", // 11 blocks of 4 digits with two or mores spaces as separators            
             "\\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4}", // 11 blocks of 4 digits with one space as the separator
@@ -310,4 +423,7 @@ public class AnalyzePDFText {
     
     }
 
+
+
+    
 }

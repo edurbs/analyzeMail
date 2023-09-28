@@ -67,32 +67,30 @@ public class BaseFolders {
     
     private String saveAttachment(EmailAttachmentDAO attachment, String folder) {
         createFolder(folder);
-        String baseName ="";
+ 
         String extension="";
-        String fileName = attachment.getFileName();
+        String fileName = attachment.getFileName();        
 
         int indexOfDot = fileName.lastIndexOf(".");
         int counter = 0;
-        if (indexOfDot == -1) {
-            baseName = fileName;
-        } else {
-            baseName = fileName.substring(0, indexOfDot);
+        if (indexOfDot != -1) {
             extension = fileName.substring(indexOfDot);
         }
     
         File file = new File(folder+"\\"+fileName);
+        fileName = file.getName();
+        
+        file = new File(folder+"\\"+fileName); // without the folder from a zip archive
+        
         while (file.exists()) {
             counter++;            
         
-            fileName=baseName + "_" + counter + extension;            
+            fileName=fileName + "_" + counter + extension;            
 
             file = new File(folder+"\\"+fileName);
         }
         
-        
         attachment.setFileName(folder+"\\"+fileName);
-        
-                
 
         try (FileOutputStream out = new FileOutputStream(file);) {            
             out.write(attachment.getData());            

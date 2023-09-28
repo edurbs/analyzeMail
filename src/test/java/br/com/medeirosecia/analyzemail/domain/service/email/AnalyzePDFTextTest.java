@@ -13,15 +13,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
-import br.com.medeirosecia.analyzemail.domain.service.pdf.ReadPDF;
 
 public class AnalyzePDFTextTest {
 
   
-    AnalyzePDFText analyzePDF;
-    ReadPDF readPDF;
-
+    HandlePDF handlePDF;
     
     private String getFinalDate(String[] date){
         String finalDate = date[0]+"/"+date[1]+"/"+date[2];
@@ -45,7 +41,8 @@ public class AnalyzePDFTextTest {
             FileInputStream fis = new FileInputStream(this.getPath(fileName));            
             //ByteArrayInputStream inputStream = new ByteArrayInputStream(IOUtils.toByteArray(fis));
             EmailAttachmentDAO emailAttachment = new EmailAttachmentDAO(fileName, IOUtils.toByteArray(fis));            
-            this.analyzePDF = new AnalyzePDFText(emailAttachment);            
+            this.handlePDF = new HandlePDF();
+            this.handlePDF.analyzeAttachment(emailAttachment, null);
             fis.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,33 +60,33 @@ public class AnalyzePDFTextTest {
         })
     void testBoletosAndDate(String fileName, String date) {
         this.setUp(fileName);
-        Assertions.assertEquals(date, this.getFinalDate(this.analyzePDF.getBoletoDate()));
-        Assertions.assertTrue(this.analyzePDF.isBoleto());
-        Assertions.assertFalse(this.analyzePDF.isNF());
+        Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getBoletoDate()));
+        Assertions.assertTrue(this.handlePDF.isBoleto());
+        Assertions.assertFalse(this.handlePDF.isNF());
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"nfse1.pdf", "nfse2.pdf", "nfSoImagemNFSCuiaba.pdf"})
     void testIfIsNfse(String fileName) {
         this.setUp(fileName);
-        Assertions.assertTrue(this.analyzePDF.isNfse());
-        Assertions.assertFalse(this.analyzePDF.isBoleto());        
+        Assertions.assertTrue(this.handlePDF.isNfse());
+        Assertions.assertFalse(this.handlePDF.isBoleto());        
     }    
     
     @Test
     public void testOCRCheckIfIsNFPdfWithOnlyImage(){
         this.setUp("nfSoImagemNFSCuiaba.pdf");        
-        Assertions.assertTrue(this.analyzePDF.isNF());
-        Assertions.assertFalse(this.analyzePDF.isBoleto());        
+        Assertions.assertTrue(this.handlePDF.isNF());
+        Assertions.assertFalse(this.handlePDF.isBoleto());        
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"nfe1.pdf", "nfe2.pdf", "nfe3.pdf"})
     void testIfIsNf(String fileName) {
         this.setUp(fileName);
-        Assertions.assertTrue(this.analyzePDF.isNF());
-        Assertions.assertFalse(this.analyzePDF.isNfse());
-        Assertions.assertFalse(this.analyzePDF.isBoleto());
+        Assertions.assertTrue(this.handlePDF.isNF());
+        Assertions.assertFalse(this.handlePDF.isNfse());
+        Assertions.assertFalse(this.handlePDF.isBoleto());
     }
 
     @ParameterizedTest
@@ -107,7 +104,7 @@ public class AnalyzePDFTextTest {
         })
     void testGetChaveDeAcesso(String fileName, String chave) {
         this.setUp(fileName);
-        Assertions.assertEquals(chave, this.analyzePDF.getChaveDeAcesso());
+        Assertions.assertEquals(chave, this.handlePDF.getChaveDeAcesso());
     }
 
     @ParameterizedTest
@@ -125,7 +122,7 @@ public class AnalyzePDFTextTest {
         })
     void testGetCNPJEmitente(String fileName, String cnpj) {
         this.setUp(fileName);
-        Assertions.assertEquals(cnpj, this.analyzePDF.getCNPJEmitente());
+        Assertions.assertEquals(cnpj, this.handlePDF.getCNPJEmitente());
     }
 
         @ParameterizedTest
@@ -143,7 +140,7 @@ public class AnalyzePDFTextTest {
         })
     void testGetDataEmissao(String fileName, String date) {
         this.setUp(fileName);
-        Assertions.assertEquals(date, this.getFinalDate(this.analyzePDF.getDataEmissao()));
+        Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getDataEmissao()));
     }
 
 

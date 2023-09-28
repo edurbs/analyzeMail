@@ -14,8 +14,8 @@ public class EmailAttachmentDAO {
     public String getFileName() {
         return filename;
     }
-    public void setFileName(String filename) {
-        this.filename = filename;
+    public void setFileName(String filename) {        
+        this.filename = filename;        
     }
 
 

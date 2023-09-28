@@ -1,13 +1,13 @@
 package br.com.medeirosecia.analyzemail.domain.service.email;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
-import br.com.medeirosecia.analyzemail.domain.service.pdf.AnalyzePDFText;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
-import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import javafx.concurrent.Task;
 
@@ -15,24 +15,27 @@ public class AnalyzeInbox extends Task<Void> {
     
     
     private BaseFolders baseFolders;
-
     private EmailProvider emailProvider;
-    private String[] extensions = new String[] { "PDF", "XML" };
-    private String[] header = new String[]{"Dt.Emissão",
-                "CNPJ Emitente",
-                "Chave de acesso",
-                "Nome do arquivo"
-        };
-
+  
     
     public AnalyzeInbox(BaseFolders baseFolders, EmailProvider emailProvider) {
         this.baseFolders = baseFolders;     
-        this.emailProvider = emailProvider;
+        this.emailProvider = emailProvider;    
     }
       
 
     @Override
     public Void call() throws Exception {
+
+        Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();        
+            extensionsMap.put("PDF", new HandlePDF());
+            extensionsMap.put("XML", new HandleXML());
+            extensionsMap.put("ZIP", new HandleArchive());
+            extensionsMap.put("RAR", new HandleArchive());
+            extensionsMap.put("7Z", new HandleArchive());
+        
+        String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
+
         EmailLabelDAO analyzedLabel = emailProvider.getEmailLabel();
         if(analyzedLabel==null){            
             updateMessage("Etiqueta não encontrada!");
@@ -40,7 +43,8 @@ public class AnalyzeInbox extends Task<Void> {
         }
         
 
-        List<EmailMessageDAO> messages = emailProvider.getNotAnalyzedMessages();
+        List<EmailMessageDAO> messages = emailProvider.getMessages();
+        
         while(messages!=null && !messages.isEmpty()){
                         
             int i=0;
@@ -52,14 +56,25 @@ public class AnalyzeInbox extends Task<Void> {
                     break;
                 }
                 
-                i++;
+                i++;                
+
                 updateProgress(i, messages.size());
-                updateMessage("Mensagem "+i+" de um pacote de "+messages.size());
+                final String userMsg = "Msg "+i+" de "+messages.size()+". ";
+                updateMessage(userMsg);
+
+                List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(message, extensions);                
                 
-                
-                
-                //new HandleAttachment(baseFolders, emailProvider, myExcel, message);             
-                handleAttachment(message);             
+                attachments.stream().forEach(attachment -> {
+                    String filename = attachment.getFileName();
+                    String extension = getExtension(filename);    
+                    
+                    updateMessage(userMsg + extension+": "+filename);               
+
+                    HandleAttachmentType handleAttachment = extensionsMap.get(extension);
+                    handleAttachment.analyzeAttachment(attachment, baseFolders);
+
+                });  
+
                 emailProvider.setMessageWithThisLabel(message.getId());
             }
 
@@ -67,7 +82,7 @@ public class AnalyzeInbox extends Task<Void> {
             if(Thread.currentThread().isInterrupted()){
                 messages = null;
             }else{
-                messages = emailProvider.getNotAnalyzedMessages();        
+                messages = emailProvider.getMessages();        
             }
         }
 
@@ -79,52 +94,6 @@ public class AnalyzeInbox extends Task<Void> {
 
     }    
 
-    private void handleAttachment(EmailMessageDAO emailMessage)  { 
-       
-        
-        List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(emailMessage, extensions);        
-        
-        attachments.stream().forEach(this::analyzeAttachment);
-        
-        
-    }
-    private void analyzeAttachment(EmailAttachmentDAO attachment) {        
-
-        String filename = attachment.getFileName();
-        String extension = getExtension(filename);       
-        
-        
-        if(!extension.isEmpty()){
-
-            if(extension.equals("PDF")){
-                
-                AnalyzePDFText analyzePDF = new AnalyzePDFText(attachment);
-
-                if(analyzePDF.isNF()){                    
-                    baseFolders.savePdfNF(attachment, analyzePDF.getDataEmissao());
-                    
-                    writeItAsExcel(analyzePDF);        
-
-                }else if(analyzePDF.isBoleto()){
-                    
-                    baseFolders.savePdfBoleto(attachment, analyzePDF.getBoletoDate());
-                    
-                } 
-                else{
-                    
-                    baseFolders.savePdfOthers(attachment);
-                    
-                }
-
-            }else if(extension.equals("XML")){
-                baseFolders.saveXml(attachment);                
-                
-            }
-        }
-        
-    }          
-    
-    
 
     private String getExtension(String filename) {
         if (filename.length() == 3) {
@@ -134,21 +103,6 @@ public class AnalyzeInbox extends Task<Void> {
         }
         return "";
 
-    }
-
-    private void writeItAsExcel(AnalyzePDFText analyzePDF) {
-        
-        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx", header);
-        String[] date = analyzePDF.getDataEmissao();
-        String dataEmissao = date[0] + "/" + date[1] + "/" + date[2];
-        String row[] = new String[] { dataEmissao,
-                analyzePDF.getCNPJEmitente(),
-                analyzePDF.getChaveDeAcesso(),
-                analyzePDF.getFileName()
-        };
-        myExcel.addRow(row);
-        myExcel.saveAndCloseWorkbook();
-        
-    }
+    }  
     
 }
