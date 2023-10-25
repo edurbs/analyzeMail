@@ -129,12 +129,18 @@ public class OutlookProvider implements EmailProvider {
     public List<EmailMessageDAO> getAllMessages() {
         int pageSize = 100; 
         int skip = 0;
-        boolean hasMoreMessages = true;
+        
         List<EmailMessageDAO> list = new ArrayList<>();
         
-        MailFolderCollectionPage mailFolders = graphClient.users(sharedMailboxId).mailFolders().buildRequest().top(10000).get();
+        MailFolderCollectionPage mailFolders = graphClient
+                .users(sharedMailboxId)
+                .mailFolders()
+                .buildRequest()
+                .top(10000)
+                .get();
         
         for (MailFolder mailFolder : mailFolders.getCurrentPage()) {
+            boolean hasMoreMessages = true;
             while (hasMoreMessages) {
                 MessageCollectionPage messageCollectionPage = graphClient
                         .users(sharedMailboxId)
