@@ -91,7 +91,7 @@ public class OutlookProvider implements EmailProvider {
     }
 
     @Override
-    public List<EmailMessageDAO> getMessages() {
+    public List<EmailMessageDAO> getMessagesWithoutLabel() {
         List<EmailMessageDAO> list = new ArrayList<>();
         
         String filter = "categories/any(c:c ne '" + ANALYZED_MAIL + "')";            
@@ -107,13 +107,9 @@ public class OutlookProvider implements EmailProvider {
                     .filter(filter)
                     .top(100)
                     .get();
-
-
-           
             List<Message> messages = messageCollectionPage.getCurrentPage();
     
-            if (!messages.isEmpty()){                    
-    
+            if (!messages.isEmpty()){    
                 for (Message message: messages) {                
                     List<String> categories = message.categories;
                     if(!categories.contains(ANALYZED_MAIL)){
@@ -123,12 +119,56 @@ public class OutlookProvider implements EmailProvider {
                 }
                 if(!list.isEmpty()){
                     return list;    
-                }
-            
+                }            
             } 
-
-        
         }        
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<EmailMessageDAO> getAllMessages() {
+        int pageSize = 100; 
+        int skip = 0;
+        boolean hasMoreMessages = true;
+        List<EmailMessageDAO> list = new ArrayList<>();
+        
+        MailFolderCollectionPage mailFolders = graphClient.users(sharedMailboxId).mailFolders().buildRequest().top(10000).get();
+        
+        for (MailFolder mailFolder : mailFolders.getCurrentPage()) {
+            while (hasMoreMessages) {
+                MessageCollectionPage messageCollectionPage = graphClient
+                        .users(sharedMailboxId)
+                        .mailFolders(mailFolder.id)
+                        .messages()
+                        .buildRequest()
+                        .top(pageSize)
+                        .skip(skip)
+                        .get();
+                
+            
+                List<Message> messages = null;
+                if(messageCollectionPage != null){
+                    messages = messageCollectionPage.getCurrentPage();
+                    if (!messages.isEmpty()) {
+                        for (Message message : messages) {
+                            EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);
+                            list.add(emailMessageDAO);
+                        }
+                    }
+                }
+        
+                if (messageCollectionPage != null && messageCollectionPage.getNextPage() != null) {
+                    skip += pageSize;
+                } else {
+                    hasMoreMessages = false;
+                }
+            }
+        }
+        
+        if (!list.isEmpty()) {
+            return list;
+        }
+        
         return Collections.emptyList();
     }
 

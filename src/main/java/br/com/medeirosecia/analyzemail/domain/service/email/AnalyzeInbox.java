@@ -18,23 +18,35 @@ public class AnalyzeInbox extends Task<Void> {
     
     private BaseFolders baseFolders;
     private EmailProvider emailProvider;
+    private boolean analizeAllMessages;
   
     
-    public AnalyzeInbox(BaseFolders baseFolders, EmailProvider emailProvider) {
+    public AnalyzeInbox(BaseFolders baseFolders, EmailProvider emailProvider, boolean analizeAllMessages) {
         this.baseFolders = baseFolders;     
         this.emailProvider = emailProvider;    
+        this.analizeAllMessages = analizeAllMessages;
     }
       
 
     @Override
     public Void call() throws Exception {
 
-        var myExcel = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx");
+        var myExcelNf = new MyExcel(this.baseFolders, "PlanilhaNF-AnalyzedMail.xlsx");
         try {
-            myExcel.justOpen();            
-            myExcel.saveAndCloseWorkbook();
+            myExcelNf.justOpen();            
+            myExcelNf.saveAndCloseWorkbook();
         } catch (IOException e) {
-            updateMessage("Planilha de excel está aberta ou com erro. Feche ou exclua a planilha.");
+            updateMessage("Planilha excel de NF está aberta ou com erro. Feche ou exclua a planilha.");
+            Thread.currentThread().interrupt();
+            return null;
+        }
+
+        var myExcelBoleto = new MyExcel(this.baseFolders, "PlanilhaBoleto-AnalyzedMail.xlsx");
+        try {
+            myExcelBoleto.justOpen();            
+            myExcelBoleto.saveAndCloseWorkbook();
+        } catch (IOException e) {
+            updateMessage("Planilha excel de Boletos está aberta ou com erro. Feche ou exclua a planilha.");
             Thread.currentThread().interrupt();
             return null;
         }
@@ -55,8 +67,12 @@ public class AnalyzeInbox extends Task<Void> {
             return null;
         }
         
-
-        List<EmailMessageDAO> messages = emailProvider.getMessages();
+        List<EmailMessageDAO> messages;
+        if(this.analizeAllMessages){
+            messages = emailProvider.getAllMessages();
+        }else{
+            messages = emailProvider.getMessagesWithoutLabel();
+        }
         
         while(messages!=null && !messages.isEmpty()){
                         
@@ -95,7 +111,7 @@ public class AnalyzeInbox extends Task<Void> {
             if(Thread.currentThread().isInterrupted()){
                 messages = null;
             }else{
-                messages = emailProvider.getMessages();        
+                messages = emailProvider.getMessagesWithoutLabel();        
             }
         }
 

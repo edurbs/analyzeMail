@@ -144,7 +144,7 @@ public class AnalyzePDFTextTest {
         })
     void testGetCNPJEmitente(String fileName, String cnpj) {
         this.setUp(fileName);
-        Assertions.assertEquals(cnpj, this.handlePDF.getCNPJEmitente());
+        Assertions.assertEquals(cnpj, this.handlePDF.getCnpjNextTo("chave de acesso"));
     }
 
         @ParameterizedTest
@@ -162,6 +162,20 @@ public class AnalyzePDFTextTest {
     void testGetDataEmissao(String fileName, String date) {
         this.setUp(fileName);
         Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getDateNf()));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"boletoBB.pdf, 30.713.395/0001-30",
+        "boletoSafra.pdf, 00.319.835/0001-09",
+        "boletoSafra2.pdf, 00.319.835/0001-09",
+        "boletoBB2.pdf, 07.652.413/0001-08",
+        "boletoSicredi.pdf, 25.274.456/0001-70",
+        "boletoSicredi2.pdf, 03.274.481/0001-11",
+        "boletoVivo.pdf, 02.558.157/0001-62"
+    })
+    void testGetCnpjBoletoFornecedor(String fileName, String cnpj) {
+        this.setUp(fileName);
+        Assertions.assertEquals(cnpj, this.handlePDF.getCnpjNextTo("nosso número"));        
     }
 
 

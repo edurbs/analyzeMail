@@ -10,7 +10,8 @@ public interface EmailProvider {
     
     public void setCredentialsFile(String credentialsFile);
     public EmailLabelDAO getEmailLabel();
-    public List<EmailMessageDAO> getMessages();
+    public List<EmailMessageDAO> getMessagesWithoutLabel();
+    public List<EmailMessageDAO> getAllMessages();
     public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions);
     public void setMessageWithThisLabel(String messageId);    
     

@@ -59,23 +59,61 @@ public class HandlePDF implements HandleAttachmentType {
         this.emailAttachmentDAO = emailAttachmentDAO;
         this.baseFolders = baseFolders;
 
-        readPDF();
-        checkKeyWords();        
+        this.readPDF();
+        this.checkKeyWords();        
 
         if(isNfs()){
-            baseFolders.savePdfNfs(emailAttachmentDAO, getDateNfs());
+            baseFolders.savePdfNfs(emailAttachmentDAO, this.getDateNfs());
         }else if(isNF()){                    
-            baseFolders.savePdfNF(emailAttachmentDAO, getDateNf());            
-            writeItAsExcel();        
+            baseFolders.savePdfNF(emailAttachmentDAO, this.getDateNf());            
+            this.writeNfExcel();        
         }else if(isBoleto()){            
-            baseFolders.savePdfBoleto(emailAttachmentDAO, getBoletoDate());            
+            baseFolders.savePdfBoleto(emailAttachmentDAO, this.getBoletoDate());
+            this.writeBoletoExcel();
         }else{            
             baseFolders.savePdfOthers(emailAttachmentDAO);            
         }
 
     }
 
-    private void writeItAsExcel() {
+    private void writeBoletoExcel(){
+        // layout CNPJ Fornecedor | Data Vencimento | Valor | Nome Arquivo
+        String[] dataVencimentoBoleto = this.getBoletoDate();        
+        String cnpjFornecedor =this.getCnpjNextTo("nosso número");
+
+        StringBuilder sb = new StringBuilder();
+        for (String line : this.pdfText.toLowerCase().split("\n")) {
+            if (line.matches(".*\\b(,\\d{2})\\b.*")) {
+                sb.append(line + " / ");
+            }            
+        }        
+        String valorBoleto = sb.toString(); 
+
+        String[] header = new String[]{"CNPJ Fornecedor",
+            "Data Vencimento",
+            "Valores encontrados",
+            "Nome do arquivo"
+        };
+
+        var myExcelBoleto = new MyExcel(this.baseFolders, "PlanilhaBoleto-AnalyzedMail.xlsx");
+        myExcelBoleto.openWorkbook(header);
+
+        String[] row = new String[] { cnpjFornecedor,
+                dataVencimentoBoleto[0] + "/" + dataVencimentoBoleto[1] + "/" + dataVencimentoBoleto[2],
+                valorBoleto,
+                getFileName()
+        };
+        myExcelBoleto.addRow(row);
+        try {
+            myExcelBoleto.saveAndCloseWorkbook();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
+    private void writeNfExcel() {
         String[] header = new String[]{"Dt.Emissão",
             "CNPJ Emitente",
             "Chave de acesso",
@@ -88,7 +126,7 @@ public class HandlePDF implements HandleAttachmentType {
         String[] date = getDateNf();
         String dataEmissao = date[0] + "/" + date[1] + "/" + date[2];
         String[] row = new String[] { dataEmissao,
-                getCNPJEmitente(),
+                getCnpjNextTo("chave de acesso"),
                 getChaveDeAcesso(),
                 getFileName()
         };
@@ -325,8 +363,8 @@ public class HandlePDF implements HandleAttachmentType {
     }
     
 
-    public String getCNPJEmitente(){
-        String targetWord = "chave de acesso";
+    public String getCnpjNextTo(String targetWord){
+        //String targetWord = "chave de acesso";
         
         Pattern pattern1 = Pattern.compile("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}[\\\u2212\\-]?\\d{2}");
         Matcher matcher = pattern1.matcher(this.pdfText.toLowerCase());

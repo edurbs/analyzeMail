@@ -47,13 +47,37 @@
   <children>
       <HBox alignment="CENTER_LEFT" prefHeight="35.0" prefWidth="376.0">
          <children>
-            <Label prefHeight="17.0" prefWidth="140.0" text="Selecione o provedor:" />
+            <Label text="Provedor">
+               <padding>
+                  <Insets right="10.0" />
+               </padding></Label>
             <RadioButton fx:id="toggleGmailProvider" mnemonicParsing="false" prefHeight="17.0" prefWidth="108.0" selected="true" text="Google Gmail">
                <toggleGroup>
                   <ToggleGroup fx:id="emailProviderGroup" />
                </toggleGroup>
             </RadioButton>
             <RadioButton fx:id="toggleOutlookProvider" mnemonicParsing="false" text="Microsoft Outlook" toggleGroup="$emailProviderGroup" />
+         </children>
+         <VBox.margin>
+            <Insets bottom="5.0" />
+         </VBox.margin>
+      </HBox>
+      <HBox>
+         <children>
+            <Label text="Analisar quais mensagens?">
+               <padding>
+                  <Insets right="10.0" />
+               </padding>
+            </Label>
+            <RadioButton fx:id="toggleOnlyNotAnalized" mnemonicParsing="false" selected="true" text="Não analisadas">
+               <padding>
+                  <Insets right="10.0" />
+               </padding>
+               <toggleGroup>
+                  <ToggleGroup fx:id="whichMessages" />
+               </toggleGroup>
+            </RadioButton>
+            <RadioButton fx:id="toggleAllMessages" mnemonicParsing="false" text="Todas" toggleGroup="$whichMessages" />
          </children>
          <VBox.margin>
             <Insets bottom="5.0" />

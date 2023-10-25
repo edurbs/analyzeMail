@@ -17,7 +17,7 @@ public class OutlookProviderTest {
     @Test
     void testGetNotAnalyzedMessages() {
         
-        var messages = provider.getMessages();
+        var messages = provider.getMessagesWithoutLabel();
         
         var totalMessages = messages.size();
         Assertions.assertTrue(totalMessages>0);  
@@ -36,7 +36,7 @@ public class OutlookProviderTest {
     void testGetAttachments(){
         provider.setCredentialsFile("C:\\temp\\outlookCredentials.json");
         String[] extensions = new String[] { "PDF", "XML" };
-        var messages = provider.getMessages();
+        var messages = provider.getMessagesWithoutLabel();
         for (EmailMessageDAO emailMessageDAO : messages) {
             var atts = provider.listAttachments(emailMessageDAO, extensions);
             for (EmailAttachmentDAO att : atts) {                
