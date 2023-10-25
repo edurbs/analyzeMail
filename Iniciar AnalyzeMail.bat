@@ -1,0 +1,1 @@
+start runtime\bin\javaw.exe --module-path "runtime\javafx\lib" --add-modules javafx.controls,javafx.swing,javafx.fxml -jar "runtime\analyzeMail.jar" 

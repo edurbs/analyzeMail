@@ -136,7 +136,7 @@ public class GmailProvider implements EmailProvider {
 		return emailLabels;
 	}
 
-	public List<EmailMessageDAO> getMessages() {
+	public List<EmailMessageDAO> getMessagesWithoutLabel() {
 		List<Message> messages = new ArrayList<>();
 		if (this.service != null) {
 			try {
@@ -144,6 +144,41 @@ public class GmailProvider implements EmailProvider {
 						.setQ("!label:" + ANALYZED_MAIL)
 						.execute();
 				messages = listMessageResponse.getMessages();				
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		List<EmailMessageDAO> emailMessages = new ArrayList<>();
+		if (messages != null && !messages.isEmpty()) {
+			for (Message message : messages) {
+				var emailMessage = new EmailMessageDAO(message.getId());				
+				emailMessages.add(emailMessage);
+			}
+		}
+		return emailMessages;
+	}
+
+	public List<EmailMessageDAO> getAllMessages() {
+		// TODO get all messages of the inbox, not only 500
+		List<Message> messages = new ArrayList<>();
+		if (this.service != null) {
+			try {
+				ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
+						.setQ("")
+						.setMaxResults(500L)
+						.execute();
+				messages = listMessageResponse.getMessages();	
+				
+				// Retrieve all messages from the inbox
+				while (listMessageResponse.getNextPageToken() != null) {
+					listMessageResponse = this.service.users().messages().list(user)
+							.setQ("")
+							.setMaxResults(500L)
+							.setPageToken(listMessageResponse.getNextPageToken())
+							.execute();
+					messages.addAll(listMessageResponse.getMessages());
+				}
 
 			} catch (Exception e) {
 				e.printStackTrace();

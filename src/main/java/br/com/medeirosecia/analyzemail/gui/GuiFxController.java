@@ -17,7 +17,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
@@ -33,36 +32,37 @@ public class GuiFxController implements Initializable {
 
     @FXML
     private ToggleGroup emailProviderGroup;
-
     @FXML
     private RadioButton toggleGmailProvider;
-
     @FXML
     private RadioButton toggleOutlookProvider;
 
     @FXML
     private Button buttonSearchFolder;
-
     @FXML
     private Button buttonSearchCredential;
 
     @FXML
     private TextField textFieldPathCredentials;
-
     @FXML
     private TextField textFieldPathFolder;
 
     @FXML
-    private ProgressBar progressBar;
-
-    @FXML
     private Button buttonStop;
-
     @FXML
     private Button buttonStart;
 
     @FXML
+    private ProgressBar progressBar;
+    @FXML
     private Label labelProgress;
+
+    @FXML
+    private ToggleGroup whichMessages;
+    @FXML
+    private RadioButton toggleAllMessages;
+    @FXML
+    private RadioButton toggleOnlyNotAnalized;
 
     private BaseFolders baseFolders = new BaseFolders();
     private Thread thread;
@@ -103,10 +103,13 @@ public class GuiFxController implements Initializable {
         EmailProvider emailProviderSelected = this.emailProvidersMap.get(toggleEmailProviderSelected);
         emailProviderSelected.setCredentialsFile(this.baseFolders.getPathCredentials());
 
+        Toggle toggleSelectedWhichMessages = whichMessages.getSelectedToggle();
+        boolean getAllMessages = toggleSelectedWhichMessages == toggleAllMessages;
+
         this.configFile.setEmailProvider(emailProviderSelected.getClass().getSimpleName().toLowerCase());
     
 
-        Task<Void> task = new AnalyzeInbox(baseFolders, emailProviderSelected);
+        Task<Void> task = new AnalyzeInbox(baseFolders, emailProviderSelected, getAllMessages);
 
         task.setOnFailed(w -> {
 
