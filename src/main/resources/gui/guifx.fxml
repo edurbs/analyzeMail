@@ -68,6 +68,9 @@
                <padding>
                   <Insets right="10.0" />
                </padding>
+               <HBox.margin>
+                  <Insets bottom="5.0" />
+               </HBox.margin>
             </Label>
             <RadioButton fx:id="toggleOnlyNotAnalized" mnemonicParsing="false" selected="true" text="Não analisadas">
                <padding>
@@ -83,10 +86,31 @@
             <Insets bottom="5.0" />
          </VBox.margin>
       </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <Label text="CNPJ's da empresa: " />
+            <TextField fx:id="textFieldPathCnpj" prefHeight="25.0" prefWidth="201.0">
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+               <padding>
+                  <Insets right="5.0" />
+               </padding>
+            </TextField>
+            <Button fx:id="buttonSearchCnpj" mnemonicParsing="false" onAction="#buttonSearchCnpjClicked" text="Procurar">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+         <VBox.margin>
+            <Insets bottom="5.0" />
+         </VBox.margin>
+      </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="44.0" prefWidth="640.0">
          <children>
             <Label text="JSON Credencial: " />
-            <TextField fx:id="textFieldPathCredentials" prefHeight="25.0" prefWidth="203.0" />
+            <TextField fx:id="textFieldPathCredentials" prefHeight="25.0" prefWidth="215.0" />
             <Button fx:id="buttonSearchCredential" mnemonicParsing="false" onAction="#buttonCredentialClicked" text="Procurar">
                <HBox.margin>
                   <Insets left="5.0" />

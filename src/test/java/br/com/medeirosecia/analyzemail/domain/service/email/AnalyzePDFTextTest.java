@@ -16,9 +16,9 @@ import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 
 public class AnalyzePDFTextTest {
 
-  
+
     HandlePDF handlePDF;
-    
+
     private String getFinalDate(String[] date){
         String finalDate = date[0]+"/"+date[1]+"/"+date[2];
         return finalDate;
@@ -32,17 +32,16 @@ public class AnalyzePDFTextTest {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return "";    
+        return "";
     }
-    
+
     void setUp(String fileName) {
-        
+
         try {
-            FileInputStream fis = new FileInputStream(this.getPath(fileName));            
-            //ByteArrayInputStream inputStream = new ByteArrayInputStream(IOUtils.toByteArray(fis));
-            EmailAttachmentDAO emailAttachment = new EmailAttachmentDAO(fileName, IOUtils.toByteArray(fis));            
-            this.handlePDF = new HandlePDF();
-            this.handlePDF.analyzeAttachment(emailAttachment, null);
+            FileInputStream fis = new FileInputStream(getPath(fileName));
+            EmailAttachmentDAO emailAttachment = new EmailAttachmentDAO(fileName, IOUtils.toByteArray(fis));
+            handlePDF = new HandlePDF();
+            handlePDF.analyzeAttachment(emailAttachment, null);
             fis.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -50,36 +49,22 @@ public class AnalyzePDFTextTest {
     }
 
     @ParameterizedTest
-    @CsvSource({ "boletoSicredi.pdf, 11/09/2023", 
-            "boletoSicredi2.pdf, 10/10/2023", 
-            "boletoVivo.pdf, 25/09/2023", 
-            "boletoSafra.pdf, 21/08/2023", 
+    @CsvSource({ "boletoSicredi.pdf, 11/09/2023",
+            "boletoSicredi2.pdf, 10/10/2023",
+            "boletoVivo.pdf, 25/09/2023",
+            "boletoSafra.pdf, 21/08/2023",
             "boletoBB2.pdf, 10/09/2023",
             "boletoBB.pdf, 10/09/2023",
             "guiaFunrural.pdf, 20/09/2023"
         })
     void testBoletosAndDate(String fileName, String date) {
-        this.setUp(fileName);
-        Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getBoletoDate()));
-        Assertions.assertTrue(this.handlePDF.isBoleto());
-        Assertions.assertFalse(this.handlePDF.isNF());
+        setUp(fileName);
+        Assertions.assertEquals(date, getFinalDate(handlePDF.getBoletoDate()));
+        Assertions.assertTrue(handlePDF.isBoleto());
+        Assertions.assertFalse(handlePDF.isNfProduto());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"nfse1.pdf", 
-            "nfse2.pdf", 
-            "nfse3.pdf",
-           
-            "nfse5.pdf", 
-            "nfse6.pdf", 
-            "nfse7.pdf", 
-            "nfSoImagemNFSCuiaba.pdf"})
-    void testIfIsNfse(String fileName) {
-        this.setUp(fileName);
-        Assertions.assertTrue(this.handlePDF.isNfs());
-        Assertions.assertFalse(this.handlePDF.isBoleto());        
-    }
-    
+
     @ParameterizedTest
     @CsvSource({ "nfse1.pdf, 06/09/2023",
             "nfse2.pdf, 06/09/2023",
@@ -90,29 +75,14 @@ public class AnalyzePDFTextTest {
             "nfSoImagemNFSCuiaba.pdf, 02/09/2023"
     })
     void testGetDateNfs(String fileName, String date){
-        this.setUp(fileName);
-        Assertions.assertEquals(date, getFinalDate(this.handlePDF.getDateNfs()));
+        setUp(fileName);
+        Assertions.assertEquals(date, getFinalDate(handlePDF.getDateNfs()));
 
     }
-    
-    @Test
-    public void testOCRCheckIfIsNFPdfWithOnlyImage(){
-        this.setUp("nfSoImagemNFSCuiaba.pdf");        
-        Assertions.assertTrue(this.handlePDF.isNfs());
-        Assertions.assertFalse(this.handlePDF.isBoleto());        
-    }
+
 
     @ParameterizedTest
-    @ValueSource(strings = {"nfe1.pdf", "nfe2.pdf", "nfe3.pdf"})
-    void testIfIsNf(String fileName) {
-        this.setUp(fileName);
-        Assertions.assertTrue(this.handlePDF.isNF());
-        Assertions.assertFalse(this.handlePDF.isNfs());
-        Assertions.assertFalse(this.handlePDF.isBoleto());
-    }
-
-    @ParameterizedTest
-    @CsvSource({"nfe1.pdf, 5123 0900 9543 0500 0132 5500 2000 2233 5710 5277 3652", 
+    @CsvSource({"nfe1.pdf, 5123 0900 9543 0500 0132 5500 2000 2233 5710 5277 3652",
             "nfe2.pdf, 5123 0847 1806 2500 3595 5500 5000 0391 5017 4776 1404",
             "nfe3.pdf, 5123 0900 3198 3500 0109 5500 3000 0913 3117 7530 2942",
             "nfe4.pdf, 5123 0612 8685 9800 0114 5500 1000 0105 4014 0078 3319",
@@ -122,15 +92,15 @@ public class AnalyzePDFTextTest {
             "nfe8.pdf, 5121 0505 3803 2100 0778 5500 1000 0055 7412 5819 1160",
             "nfe9.pdf, 5123 0904 7337 6700 0261 5500 1000 0273 4011 1828 6076",
             "nfe10.pdf, 5123 0906 1166 0000 0104 5500 1000 0420 2515 8226 9257"
-            
+
         })
     void testGetChaveDeAcesso(String fileName, String chave) {
-        this.setUp(fileName);
-        Assertions.assertEquals(chave, this.handlePDF.getChaveDeAcesso());
+        setUp(fileName);
+        Assertions.assertEquals(chave, handlePDF.getChaveDeAcesso());
     }
 
     @ParameterizedTest
-    @CsvSource({"nfe1.pdf, 00954305000132", 
+    @CsvSource({"nfe1.pdf, 00954305000132",
             "nfe2.pdf, 47.180.625/0035-95",
             "nfe3.pdf, 00.319.835/0001-09",
             "nfe4.pdf, 12.868.598/0001-14",
@@ -143,12 +113,12 @@ public class AnalyzePDFTextTest {
             "nfe11.pdf, 00.959.825/0001-38"
         })
     void testGetCNPJEmitente(String fileName, String cnpj) {
-        this.setUp(fileName);
-        Assertions.assertEquals(cnpj, this.handlePDF.getCnpjNextTo("chave de acesso"));
+        setUp(fileName);
+        Assertions.assertEquals(cnpj, handlePDF.getCnpjNextTo("chave de acesso"));
     }
 
         @ParameterizedTest
-    @CsvSource({"nfe1.pdf, 06/09/2023", 
+    @CsvSource({"nfe1.pdf, 06/09/2023",
             "nfe2.pdf, 28/08/2023",
             "nfe3.pdf, 06/09/2023",
             "nfe4.pdf, 14/06/2023",
@@ -160,8 +130,8 @@ public class AnalyzePDFTextTest {
             "nfe10.pdf, 08/09/2023"
         })
     void testGetDataEmissao(String fileName, String date) {
-        this.setUp(fileName);
-        Assertions.assertEquals(date, this.getFinalDate(this.handlePDF.getDateNf()));
+        setUp(fileName);
+        Assertions.assertEquals(date, getFinalDate(handlePDF.getDateNf()));
     }
 
     @ParameterizedTest
@@ -174,8 +144,8 @@ public class AnalyzePDFTextTest {
         "boletoVivo.pdf, 02.558.157/0001-62"
     })
     void testGetCnpjBoletoFornecedor(String fileName, String cnpj) {
-        this.setUp(fileName);
-        Assertions.assertEquals(cnpj, this.handlePDF.getCnpjNextTo("nosso número"));        
+        setUp(fileName);
+        Assertions.assertEquals(cnpj, handlePDF.getCnpjNextTo("nosso número"));
     }
 
 

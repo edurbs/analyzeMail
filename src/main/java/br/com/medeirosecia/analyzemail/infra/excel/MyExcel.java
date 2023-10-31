@@ -15,21 +15,21 @@ public class MyExcel {
 
     private Workbook workbook;
     private Sheet sheet;
-    
+
     private String filePath;
 
 
     public MyExcel(BaseFolders localFileSystem, String fileName ){
 
         this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
-        
+
     }
 
     public void justOpen() throws IOException{
-        // check if file exists        
+        // check if file exists
         File file = new File(this.filePath);
-        if(file.exists()){                       
-            this.workbook = new XSSFWorkbook(new FileInputStream(this.filePath));                      
+        if(file.exists()){
+            this.workbook = new XSSFWorkbook(new FileInputStream(this.filePath));
         }else{
             this.workbook = new XSSFWorkbook();
         }
@@ -39,7 +39,7 @@ public class MyExcel {
         try {
             this.justOpen();
             if(this.workbook.getNumberOfSheets() == 0){
-                this.workbook.createSheet("PlanilhaNF-AnalyzedMail");                    
+                this.workbook.createSheet("PlanilhaNF-AnalyzedMail");
             }
             this.sheet = this.workbook.getSheetAt(0);
 
@@ -51,7 +51,7 @@ public class MyExcel {
             // TODO: handle exception
             e.printStackTrace();
         }
-        
+
     }
 
     private boolean headerNotExists(){
@@ -70,16 +70,19 @@ public class MyExcel {
 
     }
 
-    
 
-    public void saveAndCloseWorkbook() throws IOException{
-        
-        FileOutputStream outputStream = new FileOutputStream(this.filePath);
-        this.workbook.write(outputStream);
-        this.workbook.close();
-        
-        outputStream.close();
-        
+
+    public void saveAndCloseWorkbook() {
+
+        try (FileOutputStream outputStream = new FileOutputStream(this.filePath)) {
+            this.workbook.write(outputStream);
+            this.workbook.close();
+
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private int getLastRow(){
@@ -91,6 +94,6 @@ public class MyExcel {
         this.sheet.createRow(lastRow + 1);
         for(int i = 0; i < row.length; i++){
             this.sheet.getRow(lastRow + 1).createCell(i).setCellValue(row[i]);
-        }    
+        }
     }
 }

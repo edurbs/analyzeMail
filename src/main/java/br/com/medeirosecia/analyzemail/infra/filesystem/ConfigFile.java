@@ -6,47 +6,42 @@ import java.util.Properties;
 
 public class ConfigFile {
 
-    private Properties prop;
-    private String baseFolder;
-    private String credentialsFilePath;
-    private String filePath;
-    private String emailProvider;
+    private Properties prop = new Properties();
+    private String baseFolder = "";
+    private String credentialsFilePath = "";
+    private String filePath = "";
+    private String emailProvider = "";
+    private String pathCnpjPayers = "";
 
     public ConfigFile(){
-        this.prop = new Properties();
-        this.filePath = System.getProperty("user.home")+"\\.analyzeMail";        
-        
+
+        filePath = System.getProperty("user.home")+"\\.analyzeMail";
+
         File fileProp = new File(filePath);
-        if(fileProp.exists()){            
-            try(var f =new java.io.FileInputStream(filePath)){                
-                prop.load(f);
-                this.baseFolder = prop.getProperty("baseFolder");
-                this.credentialsFilePath = prop.getProperty("credentialsFilePath");
-                this.emailProvider = prop.getProperty("emailProvider");
+        if(fileProp.exists()){
+            try(var file =new java.io.FileInputStream(filePath)){
+                prop.load(file);
+                loadProperties();
             }catch(Exception e){
                 e.printStackTrace();
             }
         }else{
-            //fileProp.mkdirs();
             saveProperties();
-        }    
+        }
     }
 
-    private void saveProperties(){
-        if(this.baseFolder!=null){
-            this.prop.setProperty("baseFolder", this.baseFolder);
-        }
-        if(this.credentialsFilePath!=null){
+    private void loadProperties() {
+        baseFolder = prop.getProperty("baseFolder");
+        credentialsFilePath = prop.getProperty("credentialsFilePath");
+        emailProvider = prop.getProperty("emailProvider");
+        pathCnpjPayers = prop.getProperty("pathCnpjPayers");
+    }
 
-            this.prop.setProperty("credentialsFilePath", this.credentialsFilePath);
-        }
-        if(this.emailProvider!=null){
-            this.prop.setProperty("emailProvider", this.emailProvider);
-        
-        }
-        try (var f = new FileOutputStream(this.filePath)) {
-            
-            prop.store(f,null);
+
+    private void saveProperties(){
+
+        try (var file = new FileOutputStream(filePath)) {
+            prop.store(file,null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,17 +49,30 @@ public class ConfigFile {
 
     public void setBaseFolder(String baseFolder) {
         this.baseFolder = baseFolder;
-        this.saveProperties();
+        prop.setProperty("baseFolder", baseFolder);
+        saveProperties();
     }
 
     public void setCredentialsFilePath(String credentialsFilePath) {
         this.credentialsFilePath = credentialsFilePath;
-        this.saveProperties();
+        prop.setProperty("credentialsFilePath", credentialsFilePath);
+        saveProperties();
     }
 
     public void setEmailProvider(String emailProvider) {
         this.emailProvider = emailProvider;
-        this.saveProperties();
+        prop.setProperty("emailProvider", emailProvider);
+        saveProperties();
+    }
+
+    public void setPathCnpjPayersPath(String pathCnpjPayers) {
+        this.pathCnpjPayers = pathCnpjPayers;
+        prop.setProperty("pathCnpjPayers", pathCnpjPayers);
+        saveProperties();
+    }
+
+    public String getPathCnpjPayersPath(){
+        return pathCnpjPayers;
     }
 
     public String getBaseFolder() {
@@ -79,6 +87,6 @@ public class ConfigFile {
         return emailProvider;
     }
 
-    
+
 
 }

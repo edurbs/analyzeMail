@@ -2,14 +2,13 @@ package br.com.medeirosecia.analyzemail.infra.filesystem;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Paths;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 
 public class BaseFolders {
 
     private String baseFolder;
-
-    private String pdfFolder;
 
     private String boletoFolder;
     private String nfFolder;
@@ -21,9 +20,10 @@ public class BaseFolders {
     private String pathCredentials;
 
     public void setBaseFolder(String baseFolder) {
+
         this.baseFolder = baseFolder;
 
-        this.pdfFolder=baseFolder+"\\pdf";
+        String pdfFolder = baseFolder+"\\pdf";
 
         this.boletoFolder=pdfFolder+"\\boleto";
         this.nfFolder=pdfFolder+"\\nf";
@@ -45,20 +45,20 @@ public class BaseFolders {
         return this.baseFolder;
     }
 
-    public String savePdfNF(EmailAttachmentDAO attachment, String[] date){
+    public String savePdfNfProduto(EmailAttachmentDAO attachment, String[] date){
         String groupFolder = this.getGroupFolder(date[2], date[1], this.nfFolder);
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
 
-    public String savePdfNfs(EmailAttachmentDAO attachment, String[] date){
+    public String savePdfNfServico(EmailAttachmentDAO attachment, String[] date){
         String groupFolder = this.getGroupFolder(date[2], date[1], this.nfsFolder);
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
 
     public String savePdfBoleto(EmailAttachmentDAO attachment, String[] date){
-        String groupFolder = this.getGroupFolder(date[2], date[1], this.boletoFolder);   
+        String groupFolder = this.getGroupFolder(date[2], date[1], this.boletoFolder);
         this.createFolder(groupFolder);
         return this.saveAttachment(attachment, groupFolder);
     }
@@ -70,39 +70,39 @@ public class BaseFolders {
     public String saveXml(EmailAttachmentDAO attachment){
         return this.saveAttachment(attachment, xmlFolder);
     }
-    
+
     private String saveAttachment(EmailAttachmentDAO attachment, String folder) {
         createFolder(folder);
- 
+
         String extension="";
-        String fileName = attachment.getFileName();        
+        String fileName = attachment.getFileName();
 
         int indexOfDot = fileName.lastIndexOf(".");
         int counter = 0;
         if (indexOfDot != -1) {
             extension = fileName.substring(indexOfDot);
         }
-    
+
         File file = new File(folder+"\\"+fileName);
         fileName = file.getName();
-        
+
         file = new File(folder+"\\"+fileName); // without the folder from a zip archive
-        
+
         while (file.exists()) {
-            counter++;            
-        
-            fileName=fileName + "_" + counter + extension;            
+            counter++;
 
-            file = new File(folder+"\\"+fileName);
+            fileName=fileName + "_" + counter + extension;
+
+            file = Paths.get(folder, fileName).toFile();
         }
-        
-        attachment.setFileName(folder+"\\"+fileName);
 
-        try (FileOutputStream out = new FileOutputStream(file);) {            
-            out.write(attachment.getData());            
-        } catch (Exception e) {            
+        attachment.setFileName(Paths.get(folder, fileName).toString());
+
+        try (FileOutputStream out = new FileOutputStream(file);) {
+            out.write(attachment.getData());
+        } catch (Exception e) {
             e.printStackTrace();
-        } 
+        }
         return attachment.getFileName();
     }
 
@@ -114,7 +114,6 @@ public class BaseFolders {
     }
 
     private String getGroupFolder(String year, String month, String folder){
-        return folder+"\\"+year+"\\"+month;        
+        return folder+"\\"+year+"\\"+month;
     }
 }
-

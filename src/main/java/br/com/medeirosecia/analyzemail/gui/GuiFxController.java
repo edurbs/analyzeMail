@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import br.com.medeirosecia.analyzemail.domain.service.email.AnalyzeInbox;
@@ -27,8 +28,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 public class GuiFxController implements Initializable {
-
- 
 
     @FXML
     private ToggleGroup emailProviderGroup;
@@ -64,20 +63,42 @@ public class GuiFxController implements Initializable {
     @FXML
     private RadioButton toggleOnlyNotAnalized;
 
+    @FXML
+    private Button buttonSearchCnpj;
+    @FXML
+    private TextField textFieldPathCnpj;
+
     private BaseFolders baseFolders = new BaseFolders();
     private Thread thread;
     private ConfigFile configFile;
     private Map<Toggle, EmailProvider> emailProvidersMap;
 
     @FXML
+    void buttonSearchCnpjClicked(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecione o arquivo de CNPJ");
+        File fileSelected = fileChooser.showOpenDialog(null);
+
+        Optional.ofNullable(fileSelected.getAbsolutePath()).ifPresent(textFieldPathCnpj::setText);
+
+        Optional.ofNullable(textFieldPathCnpj.getText()).ifPresent(path -> {
+            configFile.setPathCnpjPayersPath(path);
+        });
+
+    }
+
+    @FXML
     void buttonSearchFolderClicked(ActionEvent event) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Selecione a pasta raiz para armazenar os arquivos");
         File folderSelected = directoryChooser.showDialog(null);
-        this.textFieldPathFolder.setText(folderSelected.getAbsolutePath());
 
-        this.baseFolders.setBaseFolder(this.textFieldPathFolder.getText());
-        this.configFile.setBaseFolder(this.textFieldPathFolder.getText());
+        Optional.ofNullable(folderSelected.getAbsolutePath()).ifPresent(textFieldPathFolder::setText);
+
+        Optional.ofNullable(textFieldPathFolder.getText()).ifPresent(path -> {
+            baseFolders.setBaseFolder(path);
+            configFile.setBaseFolder(path);
+        });
 
     }
 
@@ -86,67 +107,63 @@ public class GuiFxController implements Initializable {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecione o arquivo de credenciais");
         File fileSelected = fileChooser.showOpenDialog(null);
-        this.textFieldPathCredentials.setText(fileSelected.getAbsolutePath());
+        textFieldPathCredentials.setText(fileSelected.getAbsolutePath());
 
-        this.baseFolders.setPathCredentials(this.textFieldPathCredentials.getText());
-        this.configFile.setCredentialsFilePath(this.textFieldPathCredentials.getText());
+        baseFolders.setPathCredentials(textFieldPathCredentials.getText());
+        configFile.setCredentialsFilePath(textFieldPathCredentials.getText());
 
     }
 
     @FXML
     void buttonStartClicked(ActionEvent event) {
 
-        this.buttonStart.setDisable(true);
-        this.buttonStop.setDisable(false);
+        buttonStart.setDisable(true);
+        buttonStop.setDisable(false);
 
         Toggle toggleEmailProviderSelected = emailProviderGroup.getSelectedToggle();
-        EmailProvider emailProviderSelected = this.emailProvidersMap.get(toggleEmailProviderSelected);
-        emailProviderSelected.setCredentialsFile(this.baseFolders.getPathCredentials());
+        EmailProvider emailProviderSelected = emailProvidersMap.get(toggleEmailProviderSelected);
+        emailProviderSelected.setCredentialsFile(baseFolders.getPathCredentials());
 
         Toggle toggleSelectedWhichMessages = whichMessages.getSelectedToggle();
         boolean getAllMessages = toggleSelectedWhichMessages == toggleAllMessages;
 
-        this.configFile.setEmailProvider(emailProviderSelected.getClass().getSimpleName().toLowerCase());
-    
+        configFile.setEmailProvider(emailProviderSelected.getClass().getSimpleName().toLowerCase());
 
         Task<Void> task = new AnalyzeInbox(baseFolders, emailProviderSelected, getAllMessages);
 
         task.setOnFailed(w -> {
 
-            this.restartButtons();            
+            restartButtons();
             w.getSource().getException().printStackTrace();
         });
 
         task.setOnSucceeded(w -> {
 
-            this.restartButtons();            
+            restartButtons();
         });
 
         progressBar.progressProperty().bind(task.progressProperty());
         labelProgress.textProperty().bind(task.messageProperty());
 
-        this.thread = new Thread(task);
-        this.thread.start();
+        thread = new Thread(task);
+        thread.start();
     }
 
     public void restartButtons() {
-        this.buttonStart.setDisable(false);
-        this.buttonStop.setDisable(true);
+        buttonStart.setDisable(false);
+        buttonStop.setDisable(true);
         progressBar.progressProperty().unbind();
         labelProgress.textProperty().unbind();
-        this.progressBar.setProgress(0);
+        progressBar.setProgress(0);
     }
 
     @FXML
     void buttonStopClicked(ActionEvent event) {
 
-        if (this.thread != null && this.thread.isAlive()) {
-
+        if (thread != null && thread.isAlive()) {
             try {
-                this.thread.interrupt();
-
+                thread.interrupt();
             } catch (Exception e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -155,24 +172,24 @@ public class GuiFxController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        
 
-        this.configFile = new ConfigFile();
+        configFile = new ConfigFile();
 
-        this.textFieldPathCredentials.setText(this.configFile.getCredentialsFilePath());
-        this.textFieldPathFolder.setText(this.configFile.getBaseFolder());
+        textFieldPathCredentials.setText(configFile.getCredentialsFilePath());
+        textFieldPathFolder.setText(configFile.getBaseFolder());
+        textFieldPathCnpj.setText(configFile.getPathCnpjPayersPath());
 
-        this.baseFolders.setBaseFolder(this.textFieldPathFolder.getText());
-        this.baseFolders.setPathCredentials(this.textFieldPathCredentials.getText());
+        baseFolders.setBaseFolder(textFieldPathFolder.getText());
+        baseFolders.setPathCredentials(textFieldPathCredentials.getText());
 
-        this.emailProvidersMap = new HashMap<>();
+        emailProvidersMap = new HashMap<>();
 
         EmailProvider gmailProvider = new GmailProvider();
         EmailProvider outlookProvider = new OutlookProvider();
-        emailProvidersMap.put(this.toggleGmailProvider, gmailProvider);
-        emailProvidersMap.put(this.toggleOutlookProvider, outlookProvider);
+        emailProvidersMap.put(toggleGmailProvider, gmailProvider);
+        emailProvidersMap.put(toggleOutlookProvider, outlookProvider);
 
-        String emailProviderFromConfig = this.configFile.getEmailProvider();
+        String emailProviderFromConfig = configFile.getEmailProvider();
 
         if (emailProviderFromConfig != null) {
             String config = emailProviderFromConfig.toLowerCase();
