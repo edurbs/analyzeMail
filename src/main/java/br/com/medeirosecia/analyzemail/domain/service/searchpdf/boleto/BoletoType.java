@@ -1,17 +1,15 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto;
 
 public enum BoletoType {
-        COMUM(new String[] { "vencimento", "cedente", "referência", "pagador", "beneficiário",
-                        "nosso número", "valor do documento", "data do processamento", "mora", "multa", "juros",
-                        "carteira",
-                        "título", "pagável", "sacado", "débito automático", "total a pagar", "mês de referência",
-                        "serviços contratados",
-                        "autenticação mecânica", "período de apuração", "número do documento",
-                        "pagar este documento até",
-                        "documento de arrecadação", "pagar até", "pague com o pix" }),
         CONSUMO_VIVO(new String[] { "Cód. Débito Automático",
                         "Planos Anatel",
                         "Telefonica Brasil S.A." }),
+        ENERGISA(new String[]{"Energia ativa em kWh",
+                        "DISTRIBUIDORA DE ENERGIA S.A.",
+                        "CONSUMO FATURADO",
+                        "Consumo kWh",
+                        "Sistema de Distribuição",
+                        "ENERGISA MATO GROSSO"}),
         DARF(new String[] { "Documento de Arrecadação",
                         "de Receitas Federais",
                         "Documento de Arrecadação de Receitas Federais",
@@ -40,7 +38,7 @@ public enum BoletoType {
                         "09-ID RECOLHIMENTO",
                         "10-INSCRIÇÃO/TIPO ( 8 )",
                         "07-ALÍQUOTA FGTS" }),
-        OTHER(new String[] { "" });
+        COMUM(new String[0]);
 
         private final String[] keyWords;
 

@@ -1,29 +1,29 @@
 package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import br.com.medeirosecia.analyzemail.domain.service.cnpj.CnpjSearch;
-import br.com.medeirosecia.analyzemail.domain.service.date.DateSearch;
-
 public class SearchPdfNfProduto extends SearchPdfAbstract {
+
+    private String accessKey;
 
     public SearchPdfNfProduto(String textToSearchIn) {
         super(textToSearchIn);
+        this.accessKey = accessKey();
     }
 
     @Override
     public String accessKey(){
+        if (accessKey != null && !accessKey.isBlank()) {
+            return this.accessKey;
+        }
 
         String[] regexPatterns = {
-            "\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}", // 11 blocks of 4 digits with two or mores spaces as separators
-            "\\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4}", // 11 blocks of 4 digits with one space as the separator
-            "\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}", // 11 blocks with dot as separator
-            "\\d{2}\\.\\d{4}\\.\\d{12}\\.\\d{2}\\.\\d{3}\\.\\d{9}\\.\\d{1}\\.\\d{8}\\.\\d{1}\\.\\d{8}" // números com outro padrão de blocos com ponto como separador
+            "\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}",
+            "\\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4} \\d{4}",
+            "\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}\\.\\d{4}",
+            "\\d{2}\\.\\d{4}\\.\\d{12}\\.\\d{2}\\.\\d{3}\\.\\d{9}\\.\\d{1}\\.\\d{8}\\.\\d{1}\\.\\d{8}",
+            "(\\d{2}\\.\\d{2}\\.\\d{2}\\.\\d{14}\\.\\d{2}\\.\\d{3}\\.\\d{9}\\.\\d{9}\\-\\d{1})"
         };
 
         for (String regex : regexPatterns) {
@@ -32,31 +32,23 @@ public class SearchPdfNfProduto extends SearchPdfAbstract {
             String found;
             if(matcher.find()){
                 found = matcher.group();
-                found = found.replaceAll("\\.", " ");
-                found = found.replaceAll("\\\s+", " ");
+                found = found.replaceAll("\\.", "");
+                found = found.replaceAll("\\s+", "");
                 return found;
             }
         }
         return "";
     }
 
-    public int keywords(){
-        String[] keywords = { "nota fiscal", "emissão",
-            "autenticidade", "danfe", "documento auxiliar", "controle do fisco",
-            "chave de acesso", "natureza da operação", "protocolo de autorização", "destinatário", "emitente",
-            "dados dos produtos" };
-        Set<String> keywordsSet = new HashSet<>(Arrays.asList(keywords));
-        int keywordsFound = 0;
-        for (String keyword : keywordsSet) {
-            if (textToSearchIn.contains(keyword.toLowerCase())) {
-                keywordsFound++;
-            }
-        }
-        return keywordsFound;
-    }
-
     public String[] date(){
-        return new DateSearch(textToSearchIn).near("autorização");
+
+        var day = "01";
+        var month = accessKey.substring(4, 6);
+        var year = "20" + accessKey.substring(2, 4);
+
+        return new String[] {day, month, year};
+
+        //return new DateSearch(textToSearchIn).near("autorização");
     }
 
     public String cnpjPayer(){
@@ -65,8 +57,13 @@ public class SearchPdfNfProduto extends SearchPdfAbstract {
     }
 
     public String cnpjSupplier(){
-        // TODO
-        return new CnpjSearch(textToSearchIn).nextTo("chave de acesso");
+
+
+
+        return accessKey.substring(6, 20);
+
+
+        //return new CnpjSearch(textToSearchIn).nextTo("chave de acesso");
     }
 
 

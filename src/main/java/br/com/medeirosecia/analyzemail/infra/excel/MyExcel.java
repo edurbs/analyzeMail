@@ -9,7 +9,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
+import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
 
 public class MyExcel {
 
@@ -19,9 +19,9 @@ public class MyExcel {
     private String filePath;
 
 
-    public MyExcel(BaseFolders localFileSystem, String fileName ){
+    public MyExcel(String fileName ){
 
-        this.filePath = localFileSystem.getBaseFolder()+"\\"+fileName;
+        this.filePath = new ConfigFile().getBaseFolder()+"\\"+fileName;
 
     }
 

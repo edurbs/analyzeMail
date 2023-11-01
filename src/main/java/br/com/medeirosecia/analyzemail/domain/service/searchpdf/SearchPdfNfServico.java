@@ -1,10 +1,5 @@
 package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import br.com.medeirosecia.analyzemail.domain.service.date.DateSearch;
 
 public class SearchPdfNfServico extends SearchPdfAbstract {
@@ -15,20 +10,6 @@ public class SearchPdfNfServico extends SearchPdfAbstract {
 
     }
 
-    @Override
-    public int keywords(){
-        String[] nfServicoKeywords = { "tomador", "serviço", "prestador", "nfs-e", "rps", "iss", "prefeitura",
-            "municipal", "issqn", "serviços eletrônica", "nota fiscal eletrônica de serviços", "Nota fiscal de serviço",
-            "Nota fiscal avulsa" };
-        Set<String> nfServicoKeywordsSet = new HashSet<>(Arrays.asList(nfServicoKeywords));
-        int keywordsFound=0;
-        for (String keyword : nfServicoKeywordsSet) {
-            if (textToSearchIn.contains(keyword.toLowerCase())) {
-                keywordsFound++;
-            }
-        }
-        return keywordsFound;
-    }
 
     @Override
     public String[] date(){

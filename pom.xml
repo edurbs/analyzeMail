@@ -2,23 +2,31 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>br.com.medeirosecia</groupId>
 	<artifactId>analyzemail</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+
 	<name>analyzemail</name>
-	
+
 	<properties>
 		<java.version>17</java.version>
 
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
-		
+
 	</properties>
 
 	<dependencies>
+
+			<!-- https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-jpeg2000 -->
+		<dependency>
+			<groupId>com.github.jai-imageio</groupId>
+			<artifactId>jai-imageio-jpeg2000</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+
 
 		<!-- https://mvnrepository.com/artifact/net.sf.sevenzipjbinding/sevenzipjbinding -->
 		<dependency>
@@ -27,7 +35,7 @@
 			<version>16.02-2.01</version>
 		</dependency>
 
-		
+
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -91,10 +99,10 @@
 			<groupId>net.sourceforge.tess4j</groupId>
 			<artifactId>tess4j</artifactId>
 			<version>5.7.0</version>
-			
+
 		</dependency>
-		
-		
+
+
 		<!-- https://mvnrepository.com/artifact/net.rationalminds/DateParser -->
 		<dependency>
 			<groupId>net.rationalminds</groupId>
@@ -116,7 +124,7 @@
 			<artifactId>google-api-services-gmail</artifactId>
 			<version>v1-rev20220404-1.32.1</version>
 			</dependency>
-		
+
 				<!-- https://mvnrepository.com/artifact/com.google.apis/google-api-services-oauth2 -->
 		<dependency>
 			<groupId>com.google.apis</groupId>
@@ -213,8 +221,8 @@
 	</dependencies>
 	<build>
 		<plugins>
-			
-			<plugin> 
+
+			<plugin>
 
                 <!-- Building an executable jar -->
 
@@ -232,18 +240,18 @@
                   </archive>
                 </configuration>
     		</plugin>
-			
+
 		</plugins>
 	</build>
-	
+
 
 
 
 	<dependencyManagement>
-	
+
 
 		<dependencies>
-		
+
 
 			<dependency>
 				<groupId>commons-codec</groupId>
@@ -255,6 +263,3 @@
 
 	</dependencyManagement>
 </project>
-
-
-

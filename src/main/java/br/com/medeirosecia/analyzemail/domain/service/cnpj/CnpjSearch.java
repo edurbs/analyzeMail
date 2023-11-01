@@ -14,18 +14,31 @@ public class CnpjSearch {
     }
 
     public List<String> all(){
-        List<String> allCnpj = new ArrayList<>();
 
-        String cnpjPattern = "\\d{2}(\\.?)\\d{3}(\\.?)\\d{3}/\\d{4}(-?\\.?)\\d{2}";
-        Pattern pattern = Pattern.compile(cnpjPattern);
+        String pattern = "(\\d{2,3}(\\.?)\\d{3}(\\.?)\\d{3}/\\d{4}(-?\\.?)\\d{2})";
+        return lookForRegex(pattern);
+    }
+
+    public List<String> withoutSeparator(){
+        String pattern = "\\b\\d{14,15}\\b";
+
+        return lookForRegex(pattern);
+    }
+
+    private List<String> lookForRegex(String regex){
+        List<String> allCnpj = new ArrayList<>();
+        Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(textToSearchIn);
 
         while (matcher.find()) {
             String cnpj = matcher.group();
             cnpj = cnpj.replaceAll("[\\D]", "");
+            if(cnpj.length()==15){
+                // TODO remove the first caracter
+                cnpj = cnpj.substring(1);
+            }
             allCnpj.add(cnpj);
         }
-
         return allCnpj;
     }
 

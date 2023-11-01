@@ -5,7 +5,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-class AccessKeyToolTest {
+import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoBarCodeTool;
+import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoType;
+
+class BoletoBarCodeToolTest {
 
     @Test
     void testValueWithComum(){

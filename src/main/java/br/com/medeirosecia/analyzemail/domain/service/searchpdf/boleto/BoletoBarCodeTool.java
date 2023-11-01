@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -22,24 +22,24 @@ public class BoletoBarCodeTool {
         String[] dueDate;
 
         switch (boletoType) {
-            case COMUM -> dueDate = getDateFromComum();
+            case ENERGISA -> dueDate = getDateFromComum();
             case CONSUMO_VIVO -> dueDate = getDateFromConsumoVivo();
             case DARF -> dueDate = getDateFromDarf();
             case GRRF -> dueDate = getDateFromGrrf();
             case GRF -> dueDate = getDateFromGrf();
             case GRU_SIMPLES -> dueDate = getDateFromGruSimples();
             case SEFAZ_MT -> dueDate = getDateFromSefazMt();
-            default -> dueDate = ZERO_DATE;
+            default -> dueDate = getDateFromComum();
         }
 
 
-        if (accessKey.length() == 47) {
-            dueDate = getDateFromComum();
+        // if (accessKey.length() == 47) {
+        //     dueDate = getDateFromComum();
 
-        } else if (accessKey.length() == 48) {
-            getDateFromConsumo();
+        // } else if (accessKey.length() == 48) {
+        //     getDateFromConsumo();
 
-        }
+        // }
         return dueDate;
     }
 
@@ -49,6 +49,9 @@ public class BoletoBarCodeTool {
     }
 
     private String[] getDateFromSefazMt(){
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
         String[] date = new String[3];
         String sub1 = accessKey.substring(20, 23);
         String sub2 = accessKey.substring(24, 30);
@@ -62,6 +65,9 @@ public class BoletoBarCodeTool {
     }
 
     private String[] getDateFromGrrf(){
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
         String[] date = new String[3];
         String sub1 = accessKey.substring(22, 23);
         String sub2 = accessKey.substring(24, 29);
@@ -75,6 +81,9 @@ public class BoletoBarCodeTool {
     }
 
     private String[] getDateFromGrf(){
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
         String[] date = new String[3];
         String sub1 = accessKey.substring(20, 23);
         String sub2 = accessKey.substring(24, 27);
@@ -88,7 +97,9 @@ public class BoletoBarCodeTool {
     }
 
     private String[] getDateFromDarf() {
-
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
         String sub1 = accessKey.substring(21, 23);
         String sub2 = accessKey.substring(24, 26);
         int days = Integer.parseInt(sub1+sub2);
@@ -98,6 +109,9 @@ public class BoletoBarCodeTool {
     }
 
     private String[] getDateFromConsumoVivo() {
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
         String[] date = new String[3];
         String sub = accessKey.substring(41, 47);
 
@@ -108,18 +122,10 @@ public class BoletoBarCodeTool {
         return date;
     }
 
-    private String[] getDateFromConsumo() {
-        String[] date = new String[3];
-        String sub = accessKey.substring(23, 29);
-
-        date[0] = sub.substring(0, 2); // day
-        date[1] = sub.substring(2, 4); // month
-        date[2] = sub.substring(4, 6); // year with 4 digits
-        return date;
-    }
-
     private String[] getDateFromComum() {
-
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
         String sub = accessKey.substring(33, 37);
         int days = Integer.parseInt(sub);
 
@@ -129,6 +135,8 @@ public class BoletoBarCodeTool {
     private String[] sumDateFebraban(int days) {
         Calendar startDateFebraban = Calendar.getInstance();
         startDateFebraban.set(1997, 9, 7); // 7/10/1997
+
+        // TODO handle boleto with year after 2025 (startdate 9999)
 
         return sumDate(startDateFebraban, days);
 
@@ -156,15 +164,17 @@ public class BoletoBarCodeTool {
     public Double getValue(){
         Double value;
         switch (boletoType) {
-            case COMUM -> value = valueFromComum();
+            case ENERGISA -> value = valueFromComum();
             case CONSUMO_VIVO, DARF, GRRF, GRF, GRU_SIMPLES, SEFAZ_MT -> value = valueFromConsumo();
-            case OTHER -> value = 0d;
-            default -> value = 0d;
+            default -> value = valueFromComum();
         }
         return value;
 
     }
     private Double valueFromConsumo() {
+        if(accessKey==null || accessKey.isBlank()){
+            return 0d;
+        }
         // iiiiNNNNNNN NNCC                         AAMMDD
         // 846900000015099800550016104349435198092332309258
 
@@ -176,6 +186,9 @@ public class BoletoBarCodeTool {
     }
 
     private Double valueFromComum() {
+        if(accessKey==null || accessKey.isBlank()){
+            return 0d;
+        }
         //                                     VVVVVVVVVVV
         // 74891123130004133950810193541041594700002339675
         //

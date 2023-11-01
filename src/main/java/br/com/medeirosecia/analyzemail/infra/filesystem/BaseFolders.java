@@ -19,6 +19,31 @@ public class BaseFolders {
 
     private String pathCredentials;
 
+    public BaseFolders() {
+        String folder = new ConfigFile().getBaseFolder();
+        this.setBaseFolder(folder);
+    }
+
+    public String getBoletoFolder(){
+        return this.boletoFolder;
+    }
+
+    public String getNfFolder(){
+        return this.nfFolder;
+    }
+
+    public String getNfsFolder(){
+        return this.nfsFolder;
+    }
+
+    public String getPdfOthersFolder(){
+        return this.pdfOthersFolder;
+    }
+
+    public String getXmlFolder(){
+        return this.xmlFolder;
+    }
+
     public void setBaseFolder(String baseFolder) {
 
         this.baseFolder = baseFolder;
@@ -72,6 +97,11 @@ public class BaseFolders {
     }
 
     private String saveAttachment(EmailAttachmentDAO attachment, String folder) {
+
+        if(attachment.isSaved()){
+            return attachment.getFileName();
+        }
+
         createFolder(folder);
 
         String extension="";
@@ -83,6 +113,9 @@ public class BaseFolders {
             extension = fileName.substring(indexOfDot);
         }
 
+        // get the file name without the extension
+        String fileNameWithoutExtention = fileName.substring(0, indexOfDot);
+
         File file = new File(folder+"\\"+fileName);
         fileName = file.getName();
 
@@ -91,7 +124,7 @@ public class BaseFolders {
         while (file.exists()) {
             counter++;
 
-            fileName=fileName + "_" + counter + extension;
+            fileName=fileNameWithoutExtention + "_" + counter + extension;
 
             file = Paths.get(folder, fileName).toFile();
         }
@@ -103,6 +136,7 @@ public class BaseFolders {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        attachment.setSaved(true);
         return attachment.getFileName();
     }
 

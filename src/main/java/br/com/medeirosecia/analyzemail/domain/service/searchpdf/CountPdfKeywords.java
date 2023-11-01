@@ -1,31 +1,42 @@
 package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
 
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 public class CountPdfKeywords {
 
     private Integer keywordsNfProduto = 0;
     private Integer keywordsNfServico = 0;
+    private Integer keywordsEnergisa = 0;
     private Integer keywordsBoleto = 0;
 
     public CountPdfKeywords(String pdfText) {
 
-        // TODO remove Keyword method from SearchPdf and move to here
-        // move keywords from BoletoType to a new Enum
-        // create a enum with PDFType with the keyword, and do foreach in it
+        Map<PdfType, Integer> keywordCountMap = new EnumMap<>(PdfType.class);
 
-        var searchers = new SearchPdf[] {
-            new SearchPdfNfProduto(pdfText),
-            new SearchPdfNfServico(pdfText),
-            new SearchPdfBoleto(pdfText)
-        };
+        for (PdfType pdfType : PdfType.values()) {
 
-        for (SearchPdf searcher : searchers) {
-            switch (searcher.getClass().getSimpleName()) {
-                case "SearchPdfNfProduto" -> keywordsNfProduto = searcher.keywords();
-                case "SearchPdfNfServico" -> keywordsNfServico = searcher.keywords();
-                case "SearchPdfBoleto" -> keywordsBoleto = searcher.keywords();
+            String[] keywords = pdfType.getKeyWords();
+            Set<String> keywordsSet = new HashSet<>(Arrays.asList(keywords));
+
+            int keywordsFound = 0;
+            for (String keyword : keywordsSet) {
+                if (pdfText.contains(keyword.toLowerCase())) {
+                    keywordsFound++;
+                }
             }
+            keywordCountMap.put(pdfType, keywordsFound);
         }
+
+        keywordsNfProduto = keywordCountMap.get(PdfType.NF_PRODUTO);
+        keywordsNfServico = keywordCountMap.get(PdfType.NF_SERVICO);
+        keywordsEnergisa = keywordCountMap.get(PdfType.ENERGISA);
+        keywordsBoleto = keywordCountMap.get(PdfType.BOLETO);
     }
+
 
 
     public boolean isPdfNfProduto() {
@@ -42,6 +53,10 @@ public class CountPdfKeywords {
         return keywordsBoleto > 5
                 && keywordsBoleto > keywordsNfProduto
                 && keywordsBoleto > keywordsNfServico;
+    }
+
+    public boolean isPdfEnergisa(){
+        return isPdfBoleto() && keywordsEnergisa > 4;
     }
 
     public boolean isPdfOther(){

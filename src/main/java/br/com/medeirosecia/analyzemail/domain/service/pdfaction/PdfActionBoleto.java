@@ -10,40 +10,46 @@ public class PdfActionBoleto extends PdfActionAbstract {
 
 
     @Override
-    public void save(EmailAttachmentDAO attachment, BaseFolders baseFolders, String pdfText) {
-
-        String filename = attachment.getFileName();
-
-        SearchPdf pdfSearch = new SearchPdfBoleto(pdfText);
+    public void save(EmailAttachmentDAO attachment, String pdfText) {
 
 
-        String[] date = pdfSearch.date();
+
+        SearchPdf searchPdf = new SearchPdfBoleto(pdfText);
+        String[] date = searchPdf.date();
+
+        String filename = new BaseFolders().savePdfBoleto(attachment, date);
+
         String stringDate = date[0] + "/" + date[1] + "/" + date[2];
 
-        String value = pdfSearch.value().toString();
+        String value = searchPdf.value().toString();
 
-        String cnpjPayer = pdfSearch.cnpjPayer();
-        String cnpjSupplier = pdfSearch.cnpjSupplier();
+        String cnpjPayer = searchPdf.cnpjPayer();
+        String cnpjSupplier = searchPdf.cnpjSupplier();
+        String barCode = searchPdf.accessKey();
 
         String[] row = new String[] {
                 cnpjPayer,
                 cnpjSupplier,
                 stringDate,
                 value,
+                barCode,
                 filename
         };
 
-        String[] header = new String[] { "CNPJ Pagador", "CNPJ Fornecedor",
-            "Data Vencimento",
-            "Valores encontrados",
-            "Nome do arquivo"
-        };
-        var myExcel = new MyExcel(baseFolders, "PlanilhaBoleto-AnalyzedMail.xlsx");
+        String[] header = new String[] {
+                "CNPJ Pagador",
+                "CNPJ Fornecedor",
+                "Data Vencimento",
+                "Valor",
+                "Linha digitável",
+                "Nome do arquivo"
+            };
+        var myExcel = new MyExcel("PlanilhaBoleto-AnalyzedMail.xlsx");
         myExcel.openWorkbook(header);
         myExcel.addRow(row);
         myExcel.saveAndCloseWorkbook();
 
-        baseFolders.savePdfBoleto(attachment, date);
+
     }
 
 

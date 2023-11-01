@@ -5,8 +5,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,7 +16,8 @@ import java.util.stream.Collectors;
 
 import br.com.medeirosecia.analyzemail.domain.service.cnpj.CnpjSearch;
 import br.com.medeirosecia.analyzemail.domain.service.date.DateSearch;
-import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
+import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoBarCodeTool;
+import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoType;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
 public class SearchPdfBoleto extends SearchPdfAbstract {
@@ -33,40 +36,35 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
     }
 
 
-    @Override
-    public int keywords() {
-
-        Set<String> boletoKeyWordsSet = new HashSet<>(Arrays.asList(BoletoType.COMUM.getBoletoKeyWords()));
-        int keyWordsFound = 0;
-
-        for (String keyWord : boletoKeyWordsSet) {
-            if (textToSearchIn.contains(keyWord.toLowerCase())) {
-                keyWordsFound++;
-            }
-        }
-
-        setType();
-
-        return keyWordsFound;
-    }
 
     private void setType() {
 
-        BoletoType[] boletoTypes = BoletoType.values();
-        for (BoletoType type : boletoTypes) {
+        boletoType = BoletoType.COMUM;
+
+        Map<BoletoType, Integer> keywordCountMap = new EnumMap<>(BoletoType.class);
+
+        for (BoletoType type : BoletoType.values()) {
             String[] keywords = type.getBoletoKeyWords();
-            boolean allKeywordsFound = true;
-            for (String keyword : keywords) {
-                if (!textToSearchIn.contains(keyword.toLowerCase())) {
-                    allKeywordsFound = false;
-                    break;
+            Set<String> keywordsSet = new HashSet<>(Arrays.asList(keywords));
+
+            int keywordsFound = 0;
+            for (String keyword : keywordsSet) {
+                if(textToSearchIn.contains(keyword.toLowerCase())){
+                    keywordsFound++;
                 }
             }
-            if (allKeywordsFound) {
-                boletoType = type;
-                break;
+            keywordCountMap.put(type, keywordsFound);
+        }
+
+        int maxKeywords = 0;
+        for (Map.Entry<BoletoType, Integer> entry : keywordCountMap.entrySet()) {
+            if (entry.getValue() > maxKeywords) {
+                maxKeywords = entry.getValue();
+                boletoType = entry.getKey();
             }
         }
+
+
     }
 
     @Override
@@ -91,7 +89,12 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
         List<String[]> allDates = dateSearch.allDates();
         List<String> stringDates = formatDates(allDates);
         stringDates.sort(this::compareDates);
-        return stringDates.get(0).split("/");
+        if(stringDates.isEmpty()){
+            return new String[]{"00", "00", "0000"};
+        }else{
+            return stringDates.get(0).split("/");
+        }
+
 
     }
 
@@ -118,6 +121,10 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
         }
     }
 
+    private List<String> searchAllCnpjWithoutSeparator() {
+        return new CnpjSearch(textToSearchIn).withoutSeparator();
+    }
+
     @Override
     public String cnpjPayer() {
 
@@ -127,15 +134,26 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
 
         searchAllCnpjInPdf();
 
-        for (String cnpj : cnpjListPayers) {
-            if(allCnpjInPdf.contains(cnpj)){ // is on the list of Payers
-                cnpjPayer = cnpj;
-                break;
-            }
+        cnpjPayer = listContains(allCnpjInPdf, cnpjListPayers);
+
+        if(cnpjPayer.isBlank()){
+            var listCnpjWithOutSeparator = searchAllCnpjWithoutSeparator();
+            cnpjPayer = listContains(listCnpjWithOutSeparator, cnpjListPayers);
         }
 
         return cnpjPayer;
 
+    }
+
+
+
+    private String listContains(List<String> cnpjListPayers, List<String> cnpjListToSearch) {
+        for (String cnpj : cnpjListPayers) {
+            if(cnpjListToSearch.contains(cnpj)){ // is on the list of Payers
+                return cnpj;
+            }
+        }
+        return "";
     }
 
     @Override
@@ -147,15 +165,24 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
 
         searchAllCnpjInPdf();
 
-        for (String cnpj : allCnpjInPdf) {
-            if(!cnpjListPayers.contains(cnpj)){ // not in list of Payers
-                cnpjSupplier = cnpj;
-                break;
-            }
+        cnpjSupplier = listNotContains(cnpjListPayers);
+
+        if(cnpjSupplier.isBlank()){
+            var listCnpjWithOutSeparator = searchAllCnpjWithoutSeparator();
+            cnpjSupplier = listNotContains(listCnpjWithOutSeparator);
         }
 
         return cnpjSupplier;
 
+    }
+
+    private String listNotContains(List<String> cnpjListPayers ){
+        for (String cnpj : allCnpjInPdf) {
+            if(!cnpjListPayers.contains(cnpj)){ // not in list of Payers
+                return cnpj;
+            }
+        }
+        return "";
     }
 
     @Override
@@ -216,6 +243,7 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
                     "\\d{5}\\.\\d{5}\\s\\s+\\d{5}\\.\\d{6}\\s\\s+\\d{5}\\.\\d{6}\\s\\s+\\d{1}\\s+\\d{14}", // safra
                     "\\d{12}\\s+\\d{12}\\s\\d{12}\\s+\\d{12}", // boleto vivo
                     "\\d{5}\\.\\d{5}\\W\\d{5}\\.\\d{6}\\W\\d{5}\\.\\d{6}\\W\\d{1,}\\W{1,6}\\d{14}", // caracteres
+                    "(\\d{5}\\.\\d{5}\\W\\W\\d{5}\\.\\d{6}\\W\\W\\d{5}\\.\\d{6}\\W\\W\\d{1}\\W\\W\\d{14})", //sicoob
                     "((\\d{11}-\\d(\\W?)){4})", // boleto GRU simples
                     "((\\d{12}\\W){4})", // boleto fgts
                     "((\\d{12}\\W{2}){4})", // boleto fgts

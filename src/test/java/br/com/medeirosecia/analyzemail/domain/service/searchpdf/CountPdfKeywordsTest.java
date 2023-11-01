@@ -11,7 +11,7 @@ class CountPdfKeywordsTest {
 
     void setUp(String fileName) {
 
-        String pdfText = new PdfUtils().setUp(fileName);
+        String pdfText = new PdfTestUtils().getFirstPage(fileName);
 
         countPdfKeywords = new CountPdfKeywords(pdfText);
 
@@ -36,6 +36,7 @@ class CountPdfKeywordsTest {
                     boletoBB2.pdf
                     boletoBB.pdf
                     guiaFunrural.pdf
+                    boletosicoob.pdf
             """)
     void testIsPdfBoleto(String fileName) {
         setUp(fileName);
@@ -43,6 +44,7 @@ class CountPdfKeywordsTest {
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
         Assertions.assertFalse(countPdfKeywords.isPdfNfProduto());
         Assertions.assertFalse(countPdfKeywords.isPdfNfServico());
+        Assertions.assertFalse(countPdfKeywords.isPdfEnergisa());
     }
 
     @ParameterizedTest
@@ -70,6 +72,18 @@ class CountPdfKeywordsTest {
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
         Assertions.assertFalse(countPdfKeywords.isPdfNfProduto());
         Assertions.assertFalse(countPdfKeywords.isPdfBoleto());
+
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "energisa.pdf", "energisa2.pdf" })
+    void testIsPdfEnergisa(String fileName) {
+        setUp(fileName);
+        Assertions.assertTrue(countPdfKeywords.isPdfEnergisa());
+        Assertions.assertFalse(countPdfKeywords.isPdfOther());
+        Assertions.assertFalse(countPdfKeywords.isPdfNfProduto());
+        Assertions.assertFalse(countPdfKeywords.isPdfNfServico());
+        Assertions.assertTrue(countPdfKeywords.isPdfBoleto());
 
     }
 

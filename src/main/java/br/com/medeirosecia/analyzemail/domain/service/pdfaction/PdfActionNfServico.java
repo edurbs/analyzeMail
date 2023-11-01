@@ -9,14 +9,14 @@ public class PdfActionNfServico extends PdfActionAbstract {
 
 
     @Override
-    public void save(EmailAttachmentDAO attachment, BaseFolders baseFolders, String pdfText) {
+    public void save(EmailAttachmentDAO attachment, String pdfText) {
 
         SearchPdf pdfSearch = new SearchPdfNfServico(pdfText);
 
 
         String[] date = pdfSearch.date();
 
-        baseFolders.savePdfNfServico(attachment, date);
+        new BaseFolders().savePdfNfServico(attachment, date);
     }
 
 }

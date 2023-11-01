@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
@@ -24,9 +23,9 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 public class HandleArchive implements HandleAttachmentType {
 
     @Override
-    public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO, BaseFolders baseFolders) {
-        Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();        
-            extensionsMap.put("PDF", new HandlePDF());
+    public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO) {
+        Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();
+            extensionsMap.put("PDF", new HandlePdf());
             extensionsMap.put("XML", new HandleXML());
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(emailAttachmentDAO.getData());
@@ -61,7 +60,7 @@ public class HandleArchive implements HandleAttachmentType {
             return;
         }
         IInStream randomAccessFileInStream = new RandomAccessFileInStream(randomAccessFile);
-        
+
 
         try (IInArchive inArchive = SevenZip.openInArchive(null, randomAccessFileInStream)) {
             for (ISimpleInArchiveItem item : inArchive.getSimpleInterface().getArchiveItems()) {
@@ -82,13 +81,13 @@ public class HandleArchive implements HandleAttachmentType {
                                     throw new SevenZipException("Error writing to ByteArrayOutputStream", e);
                                 }
                             }
-                        });                       
+                        });
                         HandleAttachmentType handleAttachmentType = extension.getValue();
-                        EmailAttachmentDAO extractedEmailAttachmentDAO = new EmailAttachmentDAO(entryName, byteArrayOutputStream.toByteArray());                        
-                        handleAttachmentType.analyzeAttachment(extractedEmailAttachmentDAO, baseFolders);
+                        EmailAttachmentDAO extractedEmailAttachmentDAO = new EmailAttachmentDAO(entryName, byteArrayOutputStream.toByteArray());
+                        handleAttachmentType.analyzeAttachment(extractedEmailAttachmentDAO);
                     }
                 }
-            } 
+            }
         } catch (SevenZipException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -101,7 +100,7 @@ public class HandleArchive implements HandleAttachmentType {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-            
+
     }
-    
+
 }

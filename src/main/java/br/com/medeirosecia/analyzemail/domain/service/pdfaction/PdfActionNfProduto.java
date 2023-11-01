@@ -11,17 +11,16 @@ public class PdfActionNfProduto extends PdfActionAbstract {
 
 
     @Override
-    public void save(EmailAttachmentDAO attachment, BaseFolders baseFolders, String pdfText) {
-
-        String fileName = attachment.getFileName();
+    public void save(EmailAttachmentDAO attachment, String pdfText) {
 
         SearchPdf nfProdutoSearch = new SearchPdfNfProduto(pdfText);
-
 
         String[] date = nfProdutoSearch.date();
         String stringDate = date[0] + "/" + date[1] + "/" + date[2];
 
-        String cnpj = nfProdutoSearch.cnpjPayer();
+        String filename = new BaseFolders().savePdfNfProduto(attachment, date);
+
+        String cnpj = nfProdutoSearch.cnpjSupplier();
 
         String accessKey = nfProdutoSearch.accessKey();
 
@@ -29,21 +28,22 @@ public class PdfActionNfProduto extends PdfActionAbstract {
                 stringDate,
                 cnpj,
                 accessKey,
-                fileName
+                filename
         };
 
-        String[] header = new String[] { "Dt.Emissão",
+        String[] header = new String[] {
+                "Dt.Emissão",
                 "CNPJ Emitente",
                 "Chave de acesso",
                 "Nome do arquivo"
         };
 
-        var myExcel = new MyExcel(baseFolders, "PlanilhaNF-AnalyzedMail.xlsx");
+        var myExcel = new MyExcel("PlanilhaNF-AnalyzedMail.xlsx");
         myExcel.openWorkbook(header);
         myExcel.addRow(row);
         myExcel.saveAndCloseWorkbook();
 
-        baseFolders.savePdfNfProduto(attachment, date);
+
     }
 
 

@@ -129,7 +129,7 @@ public class GuiFxController implements Initializable {
 
         configFile.setEmailProvider(emailProviderSelected.getClass().getSimpleName().toLowerCase());
 
-        Task<Void> task = new AnalyzeInbox(baseFolders, emailProviderSelected, getAllMessages);
+        Task<Void> task = new AnalyzeInbox(emailProviderSelected, getAllMessages);
 
         task.setOnFailed(w -> {
 
