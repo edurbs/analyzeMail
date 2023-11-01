@@ -12,6 +12,7 @@ public class CountPdfKeywords {
     private Integer keywordsNfServico = 0;
     private Integer keywordsEnergisa = 0;
     private Integer keywordsBoleto = 0;
+    private Integer keywordsOther = 0;
 
     public CountPdfKeywords(String pdfText) {
 
@@ -35,6 +36,7 @@ public class CountPdfKeywords {
         keywordsNfServico = keywordCountMap.get(PdfType.NF_SERVICO);
         keywordsEnergisa = keywordCountMap.get(PdfType.ENERGISA);
         keywordsBoleto = keywordCountMap.get(PdfType.BOLETO);
+        keywordsOther = keywordCountMap.get(PdfType.OUTRO);
     }
 
 
@@ -60,6 +62,6 @@ public class CountPdfKeywords {
     }
 
     public boolean isPdfOther(){
-        return !isPdfNfProduto() && !isPdfNfServico() && !isPdfBoleto();
+        return (!isPdfNfProduto() && !isPdfNfServico() && !isPdfBoleto()) || keywordsOther>5;
     }
 }

@@ -1,16 +1,16 @@
 package br.com.medeirosecia.analyzemail.domain.service.pdfaction;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
 import br.com.medeirosecia.analyzemail.domain.service.searchpdf.SearchPdf;
 import br.com.medeirosecia.analyzemail.domain.service.searchpdf.SearchPdfBoleto;
-import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 
 public class PdfActionBoleto extends PdfActionAbstract {
 
 
     @Override
-    public void save(EmailAttachmentDAO attachment, String pdfText) {
+    public void save(EmailAttachmentDAO attachment, String pdfText, ExcelFile excelFile) {
 
 
 
@@ -36,18 +36,7 @@ public class PdfActionBoleto extends PdfActionAbstract {
                 filename
         };
 
-        String[] header = new String[] {
-                "CNPJ Pagador",
-                "CNPJ Fornecedor",
-                "Data Vencimento",
-                "Valor",
-                "Linha digitável",
-                "Nome do arquivo"
-            };
-        var myExcel = new MyExcel("PlanilhaBoleto-AnalyzedMail.xlsx");
-        myExcel.openWorkbook(header);
-        myExcel.addRow(row);
-        myExcel.saveAndCloseWorkbook();
+        excelFile.addBoletoRow(row);
 
 
     }

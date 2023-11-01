@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionBoleto;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionInterface;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfProduto;
@@ -14,7 +15,7 @@ import br.com.medeirosecia.analyzemail.domain.service.searchpdf.CountPdfKeywords
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
 public class HandlePdfPage {
-    public HandlePdfPage(String pdfPageText, EmailAttachmentDAO emailAttachmentDAO){
+    public HandlePdfPage(String pdfPageText, EmailAttachmentDAO emailAttachmentDAO, ExcelFile excelFile){
         List<String> cnpjListPayers = new ReadCnpjFile().getCnpjListPayers();
 
         pdfPageText = pdfPageText.toLowerCase();
@@ -30,6 +31,6 @@ public class HandlePdfPage {
 
         PdfActionInterface pdfAction = map.get(true);
         pdfAction.setCnpjPayers(cnpjListPayers);
-        pdfAction.save(emailAttachmentDAO, pdfPageText);
+        pdfAction.save(emailAttachmentDAO, pdfPageText, excelFile);
     }
 }

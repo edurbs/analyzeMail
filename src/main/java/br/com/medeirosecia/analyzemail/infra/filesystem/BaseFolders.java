@@ -104,29 +104,26 @@ public class BaseFolders {
 
         createFolder(folder);
 
-        String extension="";
         String fileName = attachment.getFileName();
+        fileName = fileName.substring(fileName.lastIndexOf("\\")+1);
 
+
+        String extension="";
         int indexOfDot = fileName.lastIndexOf(".");
         int counter = 0;
         if (indexOfDot != -1) {
             extension = fileName.substring(indexOfDot);
         }
-
-        // get the file name without the extension
         String fileNameWithoutExtention = fileName.substring(0, indexOfDot);
 
         File file = new File(folder+"\\"+fileName);
-        fileName = file.getName();
-
-        file = new File(folder+"\\"+fileName); // without the folder from a zip archive
 
         while (file.exists()) {
             counter++;
 
             fileName=fileNameWithoutExtention + "_" + counter + extension;
 
-            file = Paths.get(folder, fileName).toFile();
+            file = new File(folder+"\\"+fileName);
         }
 
         attachment.setFileName(Paths.get(folder, fileName).toString());

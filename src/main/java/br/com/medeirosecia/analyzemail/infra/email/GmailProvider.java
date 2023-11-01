@@ -102,7 +102,7 @@ public class GmailProvider implements EmailProvider {
 		return msg;
 	}
 
-	public EmailLabelDAO getEmailLabel() {		
+	public EmailLabelDAO getEmailLabel() {
 		List<EmailLabelDAO> emailLabels = listLabels();
 		for (EmailLabelDAO emailLabelDTO : emailLabels) {
 			if (emailLabelDTO.getName().toLowerCase().contains(ANALYZED_MAIL.toLowerCase())) {
@@ -136,30 +136,30 @@ public class GmailProvider implements EmailProvider {
 		return emailLabels;
 	}
 
-	public List<EmailMessageDAO> getMessagesWithoutLabel() {
+	public void getMessagesWithoutLabel(List<EmailMessageDAO> listEmailMessagesDAO) {
 		List<Message> messages = new ArrayList<>();
 		if (this.service != null) {
 			try {
 				ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
 						.setQ("!label:" + ANALYZED_MAIL)
 						.execute();
-				messages = listMessageResponse.getMessages();				
+				messages = listMessageResponse.getMessages();
 
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		List<EmailMessageDAO> emailMessages = new ArrayList<>();
+
 		if (messages != null && !messages.isEmpty()) {
 			for (Message message : messages) {
-				var emailMessage = new EmailMessageDAO(message.getId());				
-				emailMessages.add(emailMessage);
+				var emailMessage = new EmailMessageDAO(message.getId());
+				listEmailMessagesDAO.add(emailMessage);
 			}
 		}
-		return emailMessages;
+		return;
 	}
 
-	public List<EmailMessageDAO> getAllMessages() {
+	public void getAllMessages(List<EmailMessageDAO> listEmailMessagesDAO) {
 		// TODO get all messages of the inbox, not only 500
 		List<Message> messages = new ArrayList<>();
 		if (this.service != null) {
@@ -168,8 +168,8 @@ public class GmailProvider implements EmailProvider {
 						.setQ("")
 						.setMaxResults(500L)
 						.execute();
-				messages = listMessageResponse.getMessages();	
-				
+				messages = listMessageResponse.getMessages();
+
 				// Retrieve all messages from the inbox
 				while (listMessageResponse.getNextPageToken() != null) {
 					listMessageResponse = this.service.users().messages().list(user)
@@ -184,14 +184,14 @@ public class GmailProvider implements EmailProvider {
 				e.printStackTrace();
 			}
 		}
-		List<EmailMessageDAO> emailMessages = new ArrayList<>();
+
 		if (messages != null && !messages.isEmpty()) {
 			for (Message message : messages) {
-				var emailMessage = new EmailMessageDAO(message.getId());				
-				emailMessages.add(emailMessage);
+				var emailMessage = new EmailMessageDAO(message.getId());
+				listEmailMessagesDAO.add(emailMessage);
 			}
 		}
-		return emailMessages;
+		return;
 	}
 
 	private byte[] downloadAttachment(MessagePart part, String messageId) {
@@ -251,6 +251,18 @@ public class GmailProvider implements EmailProvider {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void loadMoreMessages(boolean loadMore) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'loadMoreMessages'");
+	}
+
+	@Override
+	public boolean hasMoreMessages() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'hasMoreMessages'");
 	}
 
 }

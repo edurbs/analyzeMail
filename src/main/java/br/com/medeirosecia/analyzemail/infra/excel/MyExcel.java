@@ -2,6 +2,7 @@ package br.com.medeirosecia.analyzemail.infra.excel;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -72,17 +73,26 @@ public class MyExcel {
 
 
 
-    public void saveAndCloseWorkbook() {
+    public void saveAndCloseWorkbook() throws IOException {
 
-        try (FileOutputStream outputStream = new FileOutputStream(this.filePath)) {
-            this.workbook.write(outputStream);
-            this.workbook.close();
+        FileOutputStream outputStream = new FileOutputStream(this.filePath);
+        this.workbook.write(outputStream);
+        this.workbook.close();
 
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        outputStream.close();
 
+
+    }
+
+    public void saveWorkbook() throws IOException {
+        FileOutputStream outputStream = new FileOutputStream(this.filePath);
+        this.workbook.write(outputStream);
+
+        outputStream.close();
+    }
+
+    public void closeWorkbook() throws IOException {
+        this.workbook.close();
     }
 
     private int getLastRow(){

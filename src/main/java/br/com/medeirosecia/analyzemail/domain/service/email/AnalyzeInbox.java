@@ -1,6 +1,7 @@
 package br.com.medeirosecia.analyzemail.domain.service.email;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import java.util.Map;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
+import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
 import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
 import javafx.concurrent.Task;
@@ -24,28 +26,7 @@ public class AnalyzeInbox extends Task<Void> {
         this.analizeAllMessages = analizeAllMessages;
     }
 
-    private boolean checkExcelFiles() {
-        var myExcelNf = new MyExcel("PlanilhaNF-AnalyzedMail.xlsx");
-        try {
-            myExcelNf.justOpen();
-            myExcelNf.saveAndCloseWorkbook();
-        } catch (IOException e) {
-            updateMessage("Planilha NF está aberta ou com erro. Feche ou exclua a planilha.");
-            Thread.currentThread().interrupt();
-            return false;
-        }
 
-        var myExcelBoleto = new MyExcel("PlanilhaBoleto-AnalyzedMail.xlsx");
-        try {
-            myExcelBoleto.justOpen();
-            myExcelBoleto.saveAndCloseWorkbook();
-        } catch (IOException e) {
-            updateMessage("Planilha Boletos está aberta ou com erro. Feche ou exclua a planilha.");
-            Thread.currentThread().interrupt();
-            return false;
-        }
-        return true;
-    }
 
     private boolean checkLabel() {
         EmailLabelDAO analyzedLabel = emailProvider.getEmailLabel();
@@ -57,11 +38,23 @@ public class AnalyzeInbox extends Task<Void> {
 
     }
 
+    private boolean checkExcelFiles(ExcelFile excelFile) {
+        try {
+            excelFile.checkExcelFiles();
+        } catch (IOException e) {
+            updateMessage("Planilhas de excel com erro. Feche ou exclua as planilhas!");
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public Void call() throws Exception {
 
-        // TODO check
-        if (!checkExcelFiles() || !checkLabel()) {
+        ExcelFile excelFile = new ExcelFile();
+
+        if (!checkExcelFiles(excelFile) || !checkLabel()) {
             return null;
         }
 
@@ -74,58 +67,74 @@ public class AnalyzeInbox extends Task<Void> {
 
         String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
 
-        List<EmailMessageDAO> messages;
-        updateMessage("Calculando quantidade de e-emails...");
+        List<EmailMessageDAO> listMessages = new ArrayList<>();
+        updateMessage("Lendo lista quantidade de e-emails...");
         if (this.analizeAllMessages) {
-            messages = emailProvider.getAllMessages();
+            emailProvider.getAllMessages(listMessages);
         } else {
-            messages = emailProvider.getMessagesWithoutLabel();
+            emailProvider.getMessagesWithoutLabel(listMessages);
         }
 
-        while (messages != null && !messages.isEmpty()) {
+        excelFile.openFiles();
 
-            int i = 0;
+        int messageNumberActual = 0;
+        String userMsg = "";
+        while(emailProvider.hasMoreMessages()) {
 
-            for (EmailMessageDAO message : messages) {
-                if (Thread.currentThread().isInterrupted()) {
+            while( listMessages.size() <= messageNumberActual){
+                updateMessage("Aguardando nova lista de e-mails...");
 
-                    Thread.currentThread().interrupt();
-                    break;
-                }
+                updateProgress(-1, -1);
+                emailProvider.loadMoreMessages(true);
+                Thread.sleep(1000);
+            }
+            emailProvider.loadMoreMessages(false);
 
-                i++;
 
-                updateProgress(i, messages.size());
-                final String userMsg = "Msg " + i + " de " + messages.size() + ". ";
-                updateMessage(userMsg);
+            updateProgress(messageNumberActual, listMessages.size());
+            userMsg = "Msg " + messageNumberActual + " de " + listMessages.size() + ". ";
 
-                updateMessage(userMsg + "Baixando anexos...");
-                List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(message, extensions);
+            updateMessage(userMsg + "Baixando anexos...");
+            var messageActual = listMessages.get(messageNumberActual);
+            List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(messageActual, extensions);
 
-                updateMessage(userMsg + "Analizando anexos...");
-                attachments.stream().forEach(attachment -> {
-
+            updateMessage(userMsg + "Analizando anexos...");
+            final String tempUserMg = userMsg;
+            for (EmailAttachmentDAO attachment : attachments) {
+                if (!Thread.currentThread().isInterrupted()) {
                     String filename = attachment.getFileName();
                     String extension = getExtension(filename);
 
-                    updateMessage(userMsg + extension + ": " + filename);
+                    updateMessage(tempUserMg + extension + ": " + filename);
 
                     HandleAttachmentType handleAttachment = extensionsMap.get(extension);
-                    handleAttachment.analyzeAttachment(attachment);
-
-                });
-
-                emailProvider.setMessageWithThisLabel(message.getId());
+                    handleAttachment.analyzeAttachment(attachment, excelFile);
+                }else{
+                    updateMessage("Finalizando ...");
+                    break;
+                }
             }
+
+
+            updateMessage(userMsg + "Marcando mensagem como analisada...");
+            emailProvider.setMessageWithThisLabel(messageActual.getId());
 
             if (Thread.currentThread().isInterrupted()) {
-                messages = null;
-            } else {
-                messages = emailProvider.getMessagesWithoutLabel();
+                updateMessage("Finalizando ...");
+                break;
             }
+
+            messageNumberActual++;
+
         }
 
+        updateMessage("Salvando Excel...");
+        excelFile.saveAllAndClose();
         updateMessage("Finalizado.");
+
+        if(Thread.currentThread().isInterrupted()){
+            Thread.currentThread().interrupt();
+        }
         return null;
 
     }

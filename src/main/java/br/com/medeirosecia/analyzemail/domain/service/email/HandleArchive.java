@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
@@ -23,7 +24,7 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 public class HandleArchive implements HandleAttachmentType {
 
     @Override
-    public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO) {
+    public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO, ExcelFile excelFile) {
         Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();
             extensionsMap.put("PDF", new HandlePdf());
             extensionsMap.put("XML", new HandleXML());
@@ -84,7 +85,7 @@ public class HandleArchive implements HandleAttachmentType {
                         });
                         HandleAttachmentType handleAttachmentType = extension.getValue();
                         EmailAttachmentDAO extractedEmailAttachmentDAO = new EmailAttachmentDAO(entryName, byteArrayOutputStream.toByteArray());
-                        handleAttachmentType.analyzeAttachment(extractedEmailAttachmentDAO);
+                        handleAttachmentType.analyzeAttachment(extractedEmailAttachmentDAO, excelFile);
                     }
                 }
             }

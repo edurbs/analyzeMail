@@ -34,14 +34,18 @@ public class SearchPdfNfProduto extends SearchPdfAbstract {
                 found = matcher.group();
                 found = found.replaceAll("\\.", "");
                 found = found.replaceAll("\\s+", "");
-                return found;
+                if(found.length() == 44){
+                    return found;
+                }
             }
         }
         return "";
     }
 
     public String[] date(){
-
+        if(accessKey == null || accessKey.isBlank() || accessKey.length() != 44){
+            return new String[] {"00", "00", "0000"};
+        }
         var day = "01";
         var month = accessKey.substring(4, 6);
         var year = "20" + accessKey.substring(2, 4);
@@ -57,7 +61,9 @@ public class SearchPdfNfProduto extends SearchPdfAbstract {
     }
 
     public String cnpjSupplier(){
-
+        if(accessKey == null || accessKey.isBlank()){
+            return "";
+        }
 
 
         return accessKey.substring(6, 20);

@@ -24,7 +24,13 @@ public enum PdfType {
             "autenticação mecânica", "período de apuração", "número do documento",
             "gru simples", "guia de recolhimento do fgts", "guia de recolhimento rescisório", "SEM RESPONSABILIDADE DO BANCOOB",
             "PAGAVEL PREFERENCIALMENTE NO SICOOB", "Cooperativa contratante", "texto de responsabilidade do beneficiário",
-            "pagar este documento até", "consumo faturado", "dar modelo", "documento de arrecadação", "pagar até" });
+            "pagar este documento até", "consumo faturado", "dar modelo", "documento de arrecadação", "pagar até" }),
+
+    OUTRO(new String[]{ "Declaração de Ajuste Anual", "Declaração IRPF", "Renda da Pessoa Física",
+                "NÚMERO DO RECIBO de sua declaração", "quotas do imposto em atraso", "ANO-CALENDÁRIO",
+                "informação da situação do processamento", "Declaração recebida via Internet", "Agente Receptor SERPRO",
+                "RENDIMENTOS TRIBUTÁVEIS", "RECIBO DE ENTREGA DA DECLARAÇÃO", "DEDUÇÕES LEGAIS", "IDENTIFICAÇÃO DO DECLARANTE",
+                "IMPOSTO A RESTITUIR", "GANHO DE CAPITAL"});
 
     private final String[] keyWords;
 
