@@ -15,7 +15,7 @@ import br.com.medeirosecia.analyzemail.domain.service.searchpdf.CountPdfKeywords
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
 public class HandlePdfPage {
-    public HandlePdfPage(String pdfPageText, EmailAttachmentDAO emailAttachmentDAO, ExcelFile excelFile){
+    public HandlePdfPage(String pdfPageText, EmailAttachmentDAO emailAttachmentDAO){
         List<String> cnpjListPayers = new ReadCnpjFile().getCnpjListPayers();
 
         pdfPageText = pdfPageText.toLowerCase();
@@ -31,6 +31,6 @@ public class HandlePdfPage {
 
         PdfActionInterface pdfAction = map.get(true);
         pdfAction.setCnpjPayers(cnpjListPayers);
-        pdfAction.save(emailAttachmentDAO, pdfPageText, excelFile);
+        pdfAction.save(emailAttachmentDAO, pdfPageText);
     }
 }

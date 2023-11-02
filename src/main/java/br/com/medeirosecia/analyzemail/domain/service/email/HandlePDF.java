@@ -6,13 +6,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
 import br.com.medeirosecia.analyzemail.infra.pdf.PdfTools;
 
 public class HandlePdf implements HandleAttachmentType {
 
     @Override
-    public void analyzeAttachment(EmailAttachmentDAO emailAttachment, ExcelFile excel) {
+    public void analyzeAttachment(EmailAttachmentDAO emailAttachment) {
 
         ExecutorService executor = Executors.newFixedThreadPool(10);
 
@@ -20,10 +19,10 @@ public class HandlePdf implements HandleAttachmentType {
         PdfTools tools = new PdfTools(stream);
         List<String> pdfPages = tools.getTextFromPdf();
         for (String page : pdfPages) {
-            executor.execute(() -> new HandlePdfPage(page, emailAttachment, excel));
+            executor.execute(() -> new HandlePdfPage(page, emailAttachment));
         }
         executor.shutdown();
-        excel.save();
+
     }
 
 }

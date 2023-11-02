@@ -1,7 +1,7 @@
 package br.com.medeirosecia.analyzemail.domain.service.pdfaction;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
+import br.com.medeirosecia.analyzemail.domain.service.csv.CsvFileHandler;
 import br.com.medeirosecia.analyzemail.domain.service.searchpdf.SearchPdf;
 import br.com.medeirosecia.analyzemail.domain.service.searchpdf.SearchPdfNfProduto;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
@@ -11,7 +11,7 @@ public class PdfActionNfProduto extends PdfActionAbstract {
 
 
     @Override
-    public void save(EmailAttachmentDAO attachment, String pdfText, ExcelFile excelFile) {
+    public void save(EmailAttachmentDAO attachment, String pdfText) {
 
         SearchPdf nfProdutoSearch = new SearchPdfNfProduto(pdfText);
 
@@ -31,7 +31,7 @@ public class PdfActionNfProduto extends PdfActionAbstract {
                 filename
         };
 
-        excelFile.addNfRow(row);
+        new CsvFileHandler().addNfRow(row);
 
 
     }

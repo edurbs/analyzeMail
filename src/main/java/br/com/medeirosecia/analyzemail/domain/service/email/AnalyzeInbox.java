@@ -9,9 +9,8 @@ import java.util.Map;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
-import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
+import br.com.medeirosecia.analyzemail.domain.service.csv.CsvFileHandler;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
-import br.com.medeirosecia.analyzemail.infra.excel.MyExcel;
 import javafx.concurrent.Task;
 
 public class AnalyzeInbox extends Task<Void> {
@@ -38,23 +37,15 @@ public class AnalyzeInbox extends Task<Void> {
 
     }
 
-    private boolean checkExcelFiles(ExcelFile excelFile) {
-        try {
-            excelFile.checkExcelFiles();
-        } catch (IOException e) {
-            updateMessage("Planilhas de excel com erro. Feche ou exclua as planilhas!");
-            Thread.currentThread().interrupt();
-            return false;
-        }
-        return true;
-    }
-
     @Override
     public Void call() throws Exception {
 
-        ExcelFile excelFile = new ExcelFile();
+        var csv = new CsvFileHandler();
+        csv.checkHeaderBoleto();
+        csv.checkHeaderNf();
 
-        if (!checkExcelFiles(excelFile) || !checkLabel()) {
+        if (!checkLabel()) {
+            updateMessage("Etiqueta não encontrada!");
             return null;
         }
 
@@ -74,8 +65,6 @@ public class AnalyzeInbox extends Task<Void> {
         } else {
             emailProvider.getMessagesWithoutLabel(listMessages);
         }
-
-        excelFile.openFiles();
 
         int messageNumberActual = 0;
         String userMsg = "";
@@ -108,7 +97,7 @@ public class AnalyzeInbox extends Task<Void> {
                     updateMessage(tempUserMg + extension + ": " + filename);
 
                     HandleAttachmentType handleAttachment = extensionsMap.get(extension);
-                    handleAttachment.analyzeAttachment(attachment, excelFile);
+                    handleAttachment.analyzeAttachment(attachment);
                 }else{
                     updateMessage("Finalizando ...");
                     break;
@@ -128,8 +117,6 @@ public class AnalyzeInbox extends Task<Void> {
 
         }
 
-        updateMessage("Salvando Excel...");
-        excelFile.saveAllAndClose();
         updateMessage("Finalizado.");
 
         if(Thread.currentThread().isInterrupted()){
