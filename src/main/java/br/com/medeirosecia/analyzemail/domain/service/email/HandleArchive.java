@@ -1,105 +1,36 @@
 package br.com.medeirosecia.analyzemail.domain.service.email;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import net.sf.sevenzipjbinding.IInArchive;
-import net.sf.sevenzipjbinding.IInStream;
-import net.sf.sevenzipjbinding.ISequentialOutStream;
-import net.sf.sevenzipjbinding.SevenZip;
-import net.sf.sevenzipjbinding.SevenZipException;
-import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
-import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
+import br.com.medeirosecia.analyzemail.infra.filesystem.ZipFileHandler;
 
 public class HandleArchive implements HandleAttachmentType {
 
     @Override
     public void analyzeAttachment(EmailAttachmentDAO emailAttachmentDAO) {
         Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();
-            extensionsMap.put("PDF", new HandlePdf());
-            extensionsMap.put("XML", new HandleXML());
+        extensionsMap.put("PDF", new HandlePdf());
+        extensionsMap.put("XML", new HandleXML());
 
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(emailAttachmentDAO.getData());
+        ByteArrayInputStream archive = new ByteArrayInputStream(emailAttachmentDAO.getData());
+        ZipFileHandler zipFileHandler = new ZipFileHandler(archive);
 
-        String tempFolderPath = System.getProperty("java.io.tmpdir");
-        File tempFolder = new File(tempFolderPath);
-        File tempFile;
-        try {
-            tempFile = File.createTempFile("tempfile", ".tmp", tempFolder);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return;
-        }
+        List<String> extensions = new ArrayList<>(extensionsMap.keySet());
 
-        try (OutputStream outputStream = new FileOutputStream(tempFile)) {
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = byteArrayInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Map<String, byte[]> extractedFilesMap = zipFileHandler.extractTheseFileExtentions(extensions);
 
-        RandomAccessFile randomAccessFile;
-        try {
-            randomAccessFile = new RandomAccessFile(tempFile, "r");
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            return;
-        }
-        IInStream randomAccessFileInStream = new RandomAccessFileInStream(randomAccessFile);
+        extractedFilesMap.forEach((fileName, data) -> {
 
+            String fileNameExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toUpperCase();
+            EmailAttachmentDAO extractedEmailAttachmentDAO = new EmailAttachmentDAO(fileName, data);
 
-        try (IInArchive inArchive = SevenZip.openInArchive(null, randomAccessFileInStream)) {
-            for (ISimpleInArchiveItem item : inArchive.getSimpleInterface().getArchiveItems()) {
-                if (item.isFolder()){
-                   continue;
-                }
-                String entryName = item.getPath();
-                for(Map.Entry<String, HandleAttachmentType> extension : extensionsMap.entrySet()){
-                    if (entryName.toUpperCase().endsWith(extension.getKey())) {
-                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                        item.extractSlow(new ISequentialOutStream() {
-                            @Override
-                            public int write(byte[] data) throws SevenZipException {
-                                try {
-                                    byteArrayOutputStream.write(data);
-                                    return data.length;
-                                } catch (IOException e) {
-                                    throw new SevenZipException("Error writing to ByteArrayOutputStream", e);
-                                }
-                            }
-                        });
-                        HandleAttachmentType handleAttachmentType = extension.getValue();
-                        EmailAttachmentDAO extractedEmailAttachmentDAO = new EmailAttachmentDAO(entryName, byteArrayOutputStream.toByteArray());
-                        handleAttachmentType.analyzeAttachment(extractedEmailAttachmentDAO);
-                    }
-                }
-            }
-        } catch (SevenZipException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        try {
-            randomAccessFileInStream.close();
-            tempFile.delete();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+            extensionsMap.get(fileNameExtension).analyzeAttachment(extractedEmailAttachmentDAO);
+        });
 
     }
 

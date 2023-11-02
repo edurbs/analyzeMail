@@ -21,6 +21,7 @@ public class OcrTools {
         try {
             Tesseract tesseract = new Tesseract();
 
+            // TODO put it in a folder inside the package
             URL url = new URL("file:///C:/Program%20Files/Tesseract-OCR");
 
             String tessractDataPath = Paths.get(url.toURI()).toString();
