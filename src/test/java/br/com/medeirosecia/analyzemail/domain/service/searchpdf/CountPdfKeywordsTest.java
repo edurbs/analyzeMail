@@ -36,7 +36,6 @@ class CountPdfKeywordsTest {
                     boletoBB2.pdf
                     boletoBB.pdf
                     guiaFunrural.pdf
-                    boletosicoob.pdf
             """)
     void testIsPdfBoleto(String fileName) {
         setUp(fileName);

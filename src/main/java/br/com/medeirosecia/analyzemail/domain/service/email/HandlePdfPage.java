@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.domain.service.excel.ExcelFile;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionBoleto;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionInterface;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfProduto;

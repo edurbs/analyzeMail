@@ -54,7 +54,7 @@ public class AnalyzeInbox extends Task<Void> {
         extensionsMap.put("XML", new HandleXML());
         extensionsMap.put("ZIP", new HandleArchive());
         extensionsMap.put("RAR", new HandleArchive());
-        extensionsMap.put("7Z", new HandleArchive());
+        //extensionsMap.put("7Z", new HandleArchive());
 
         String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
 
