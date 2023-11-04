@@ -62,6 +62,11 @@ public class ZipFileHandler {
 
             Map<String, byte[]> extractedFilesMap = openArchive(extensions, iInStream);
 
+            // to avoid errors when deleting the file
+            iInStream.close();
+            randomAccessFile.close();
+            outputStream.close();
+
             Files.delete(tempFile.toPath());
 
             return extractedFilesMap;

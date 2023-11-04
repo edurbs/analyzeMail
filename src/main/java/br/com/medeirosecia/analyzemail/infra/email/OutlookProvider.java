@@ -18,7 +18,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
 import com.microsoft.graph.models.Attachment;
 import com.microsoft.graph.models.FileAttachment;
-import com.microsoft.graph.models.Folder;
 import com.microsoft.graph.models.MailFolder;
 import com.microsoft.graph.models.Message;
 import com.microsoft.graph.requests.AttachmentCollectionPage;
@@ -26,7 +25,6 @@ import com.microsoft.graph.requests.AttachmentRequest;
 import com.microsoft.graph.requests.GraphServiceClient;
 import com.microsoft.graph.requests.MailFolderCollectionPage;
 import com.microsoft.graph.requests.MailFolderCollectionRequestBuilder;
-import com.microsoft.graph.requests.MailFolderRequestBuilder;
 import com.microsoft.graph.requests.MessageCollectionPage;
 import com.microsoft.graph.requests.MessageCollectionRequestBuilder;
 
@@ -160,14 +158,10 @@ public class OutlookProvider implements EmailProvider {
 
             for (Message message: listMessagesCurrentPage) {
 
-                while (!getMoreMessages){
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        Thread.currentThread().interrupt();
-                    }
+                while (!getMoreMessages){ // wait for next request to get more messages
+                    waitToGetMoreMessages();
                 }
+
                 EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);
                 listEmailMessagesDAO.add(emailMessageDAO);
 
@@ -182,6 +176,15 @@ public class OutlookProvider implements EmailProvider {
                     .buildRequest()
                     .get();
             }
+        }
+    }
+
+    private void waitToGetMoreMessages() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -210,104 +213,6 @@ public class OutlookProvider implements EmailProvider {
         this.getMoreMessages = loadMore;
     }
 
-    /*private List<EmailMessageDAO> getMessagesWithoutLabelOld() {
-        int pageSize = 999;
-        int skip = 0;
-        List<EmailMessageDAO> list = new ArrayList<>();
-
-        String filter = "categories/any(c:c ne '" + ANALYZED_MAIL + "')";
-
-        MailFolderCollectionPage mailFolderCollectionPage = graphClient
-                .users(sharedMailboxId)
-                .mailFolders()
-                .buildRequest()
-                .top(pageSize)
-                .skip(skip)
-                .get();
-
-
-        for (MailFolder mailFolder : mailFolderCollectionPage.getCurrentPage()) {
-            MessageCollectionPage messageCollectionPage = graphClient
-                    .users(sharedMailboxId)
-                    .mailFolders(mailFolder.id)
-                    .messages()
-                    .buildRequest()
-                    .filter(filter)
-                    .top(pageSize)
-                    .skip(skip)
-                    .get();
-            List<Message> listMessagesCurrentPage = messageCollectionPage.getCurrentPage();
-
-            if (!listMessagesCurrentPage.isEmpty()){
-                for (Message message: listMessagesCurrentPage) {
-                    List<String> categories = message.categories;
-                    if(!categories.contains(ANALYZED_MAIL)){
-                        EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);
-                        list.add(emailMessageDAO);
-                    }
-                }
-                if(!list.isEmpty()){
-                    return list;
-                }
-            }
-        }
-        return Collections.emptyList();
-    }
-
-
-    public List<EmailMessageDAO> getAllMessagesOld() {
-
-        int pageSize = 999;
-        int skip = 0;
-
-        List<EmailMessageDAO> list = new ArrayList<>();
-
-        MailFolderCollectionPage mailFolders = graphClient
-                .users(sharedMailboxId)
-                .mailFolders()
-                .buildRequest()
-                .top(pageSize)
-                .get();
-
-        for (MailFolder mailFolder : mailFolders.getCurrentPage()) {
-            boolean hasMoreMessages = true;
-            while (hasMoreMessages && mailFolder.id!=null) {
-                MessageCollectionPage messageCollectionPage = graphClient
-                        .users(sharedMailboxId)
-                        .mailFolders(mailFolder.id)
-                        .messages()
-                        .buildRequest()
-                        .top(pageSize)
-                        .skip(skip)
-                        .get();
-
-
-                List<Message> listMessagesCurrentPage = null;
-                if(messageCollectionPage != null){
-                    listMessagesCurrentPage = messageCollectionPage.getCurrentPage();
-                    if (!listMessagesCurrentPage.isEmpty()) {
-                        for (Message message : listMessagesCurrentPage) {
-                            EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);
-                            list.add(emailMessageDAO);
-                        }
-                    }
-                }
-
-                if (messageCollectionPage != null && messageCollectionPage.getNextPage() != null) {
-                    skip += pageSize;
-                } else {
-                    hasMoreMessages = false;
-                }
-            }
-        }
-
-        if (!list.isEmpty()) {
-            return list;
-        }
-
-        return Collections.emptyList();
-    }
-*/
     @Override
     public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions) {
         if (emailMessageDAO == null || extensions == null || extensions.length == 0) {

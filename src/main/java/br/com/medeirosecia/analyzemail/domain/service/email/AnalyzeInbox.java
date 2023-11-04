@@ -19,7 +19,6 @@ import javafx.concurrent.Task;
 
 public class AnalyzeInbox extends Task<Void> {
 
-
     private EmailProvider emailProvider;
     private boolean analizeAllMessages;
 
@@ -28,8 +27,6 @@ public class AnalyzeInbox extends Task<Void> {
         this.emailProvider = emailProvider;
         this.analizeAllMessages = analizeAllMessages;
     }
-
-
 
     private boolean checkLabel() {
         EmailLabelDAO analyzedLabel = emailProvider.getEmailLabel();
@@ -59,25 +56,26 @@ public class AnalyzeInbox extends Task<Void> {
         extensionsMap.put("ZIP", new HandleArchive());
         extensionsMap.put("RAR", new HandleArchive());
         // FEAT handle archive with 7z format
-        //extensionsMap.put("7Z", new HandleArchive());
+        // extensionsMap.put("7Z", new HandleArchive());
 
         String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
 
         List<EmailMessageDAO> listMessages = new ArrayList<>();
-        updateMessage("Lendo lista quantidade de e-emails...");
+        updateMessage("Lendo quantidade de e-emails...");
         if (this.analizeAllMessages) {
             emailProvider.getAllMessages(listMessages);
         } else {
             emailProvider.getMessagesWithoutLabel(listMessages);
         }
 
-        // TODO get int number of total messages
+        // FEAT get int number of total messages for outlook
 
-        int messageNumberActual = 0;
+        int messageNumberActual = 1;
         String userMsg = "";
-        while(emailProvider.hasMoreMessages()) {
+        while (emailProvider.hasMoreMessages() || messageNumberActual <= listMessages.size()) {
 
-            while( listMessages.size() <= messageNumberActual){
+
+            while (listMessages.size() < messageNumberActual) {
                 updateMessage("Aguardando nova lista de e-mails...");
 
                 updateProgress(-1, -1);
@@ -86,37 +84,35 @@ public class AnalyzeInbox extends Task<Void> {
             }
             emailProvider.loadMoreMessages(false);
 
-
             updateProgress(messageNumberActual, listMessages.size());
             userMsg = "Msg " + messageNumberActual + " de " + listMessages.size() + ". ";
 
             updateMessage(userMsg + "Baixando anexos...");
-            var messageActual = listMessages.get(messageNumberActual);
+            var messageActual = listMessages.get(messageNumberActual-1);
             List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(messageActual, extensions);
 
             updateMessage(userMsg + "Analizando anexos...");
-            final String tempUserMg = userMsg;
+
             for (EmailAttachmentDAO attachment : attachments) {
                 if (!Thread.currentThread().isInterrupted()) {
                     String filename = attachment.getFileName();
                     String extension = getExtension(filename);
 
-                    updateMessage(tempUserMg + extension + ": " + filename);
+                    updateMessage(userMsg + extension + ": " + filename);
 
                     HandleAttachmentType handleAttachment = extensionsMap.get(extension);
                     handleAttachment.analyzeAttachment(attachment);
-                }else{
+                } else {
                     updateMessage("Finalizando ...");
                     break;
                 }
             }
 
-
             updateMessage(userMsg + "Marcando mensagem como analisada...");
             emailProvider.setMessageWithThisLabel(messageActual.getId());
 
             if (Thread.currentThread().isInterrupted()) {
-                updateMessage("Finalizando ...");
+                updateMessage("Finalizado.");
                 break;
             }
 
@@ -124,15 +120,15 @@ public class AnalyzeInbox extends Task<Void> {
 
         }
 
-        updateMessage("Finalizado. Analizados " + messageNumberActual + " de " + listMessages.size() + " e-mails.");
+        updateMessage("Finalizado. Analizados " + (messageNumberActual-1) + " de " + listMessages.size() + " e-mails.");
 
         // FEAT after finish, convert CSV to Excel file
 
-        if(Thread.currentThread().isInterrupted()){
+        if (Thread.currentThread().isInterrupted()) {
             Thread.currentThread().interrupt();
         }
-        return null;
 
+        return null;
     }
 
     private String getExtension(String filename) {

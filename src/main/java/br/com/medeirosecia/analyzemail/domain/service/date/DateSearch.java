@@ -48,6 +48,8 @@ public class DateSearch {
     public String[] inBoleto(){
 
         String date = NULL_DATE;
+
+        // FEAT: change parser to apache coomons DateParser
         Parser parser = new Parser();
         int vencimento = textToSearchIn.indexOf("vencimento");
         String tempText = textToSearchIn;
