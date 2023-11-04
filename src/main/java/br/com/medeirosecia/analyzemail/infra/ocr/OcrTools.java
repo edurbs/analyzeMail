@@ -2,6 +2,7 @@ package br.com.medeirosecia.analyzemail.infra.ocr;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -21,10 +22,7 @@ public class OcrTools {
         try {
             Tesseract tesseract = new Tesseract();
 
-            // TODO put it in a folder inside the package
-            URL url = new URL("file:///C:/Program%20Files/Tesseract-OCR");
-
-            String tessractDataPath = Paths.get(url.toURI()).toString();
+            String tessractDataPath = getTesseractDataPath();
 
             tesseract.setDatapath(tessractDataPath);
             tesseract.setLanguage("por");
@@ -32,6 +30,17 @@ public class OcrTools {
 
             String pageResult = tesseract.doOCR(bufferedImage);
             return pageResult;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private String getTesseractDataPath() {
+        try {
+            URL url = OcrTools.class.getProtectionDomain().getCodeSource().getLocation();
+            Path path = Paths.get(url.toURI()).getParent().resolve("Tesseract-OCR");
+            return path.toString();
         } catch (Exception e) {
             e.printStackTrace();
         }

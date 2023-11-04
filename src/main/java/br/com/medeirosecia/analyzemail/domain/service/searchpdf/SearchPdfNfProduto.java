@@ -56,7 +56,7 @@ public class SearchPdfNfProduto extends SearchPdfAbstract {
     }
 
     public String cnpjPayer(){
-        // TODO
+        // FEAT implement pagador CNPJ de NF
         return "";
     }
 

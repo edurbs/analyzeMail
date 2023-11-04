@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.email.attachment.pdf;
 
 import java.util.HashMap;
 import java.util.List;

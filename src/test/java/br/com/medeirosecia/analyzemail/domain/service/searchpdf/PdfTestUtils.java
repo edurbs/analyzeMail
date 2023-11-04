@@ -38,10 +38,9 @@ public class PdfTestUtils {
 
     private String getPath(String url){
         try {
-            URL resource = AnalyzemailApplication.class.getResource("/pdfTest/"+url);
+            URL resource = getClass().getResource("/pdfTest/"+url);
             return Paths.get(resource.toURI()).toString();
         } catch (URISyntaxException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         return "";

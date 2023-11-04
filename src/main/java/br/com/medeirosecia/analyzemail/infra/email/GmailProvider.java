@@ -111,7 +111,7 @@ public class GmailProvider implements EmailProvider {
 			}
 		}
 		return null;
-		// TODO criar label automaticamente no gmail
+		// FEAT criar label automaticamente no gmail
 	}
 
 	private List<EmailLabelDAO> listLabels() {
@@ -129,7 +129,6 @@ public class GmailProvider implements EmailProvider {
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -202,7 +201,6 @@ public class GmailProvider implements EmailProvider {
 			return Base64.decodeBase64(attachPart.getData());
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new byte[0];
@@ -255,13 +253,13 @@ public class GmailProvider implements EmailProvider {
 
 	@Override
 	public void loadMoreMessages(boolean loadMore) {
-		// TODO Auto-generated method stub
+		// TODO implementar lógica de aguardar para carregar mais mensagens
 		throw new UnsupportedOperationException("Unimplemented method 'loadMoreMessages'");
 	}
 
 	@Override
 	public boolean hasMoreMessages() {
-		// TODO Auto-generated method stub
+		// TODO implementar lógica de aguardar para carregar mais mensagens
 		throw new UnsupportedOperationException("Unimplemented method 'hasMoreMessages'");
 	}
 

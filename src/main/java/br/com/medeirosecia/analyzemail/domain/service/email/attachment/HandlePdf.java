@@ -1,8 +1,9 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.email.attachment;
 
 import java.io.ByteArrayInputStream;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
+import br.com.medeirosecia.analyzemail.domain.service.email.attachment.pdf.HandlePdfPage;
 import br.com.medeirosecia.analyzemail.infra.pdf.PdfTools;
 
 public class HandlePdf implements HandleAttachmentType {

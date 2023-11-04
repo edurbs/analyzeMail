@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.email;
+package br.com.medeirosecia.analyzemail.domain.service.email.attachment;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;

@@ -10,6 +10,10 @@ import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 import br.com.medeirosecia.analyzemail.domain.service.csv.CsvFileHandler;
+import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandleArchive;
+import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandleAttachmentType;
+import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandlePdf;
+import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandleXML;
 import br.com.medeirosecia.analyzemail.infra.email.EmailProvider;
 import javafx.concurrent.Task;
 
@@ -54,7 +58,7 @@ public class AnalyzeInbox extends Task<Void> {
         extensionsMap.put("XML", new HandleXML());
         extensionsMap.put("ZIP", new HandleArchive());
         extensionsMap.put("RAR", new HandleArchive());
-        // TODO test with 7z format
+        // FEAT handle archive with 7z format
         //extensionsMap.put("7Z", new HandleArchive());
 
         String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
@@ -66,6 +70,8 @@ public class AnalyzeInbox extends Task<Void> {
         } else {
             emailProvider.getMessagesWithoutLabel(listMessages);
         }
+
+        // TODO get int number of total messages
 
         int messageNumberActual = 0;
         String userMsg = "";
@@ -119,6 +125,8 @@ public class AnalyzeInbox extends Task<Void> {
         }
 
         updateMessage("Finalizado. Analizados " + messageNumberActual + " de " + listMessages.size() + " e-mails.");
+
+        // FEAT after finish, convert CSV to Excel file
 
         if(Thread.currentThread().isInterrupted()){
             Thread.currentThread().interrupt();

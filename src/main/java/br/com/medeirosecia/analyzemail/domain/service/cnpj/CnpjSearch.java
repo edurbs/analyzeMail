@@ -34,7 +34,6 @@ public class CnpjSearch {
             String cnpj = matcher.group();
             cnpj = cnpj.replaceAll("[\\D]", "");
             if(cnpj.length()==15){
-                // TODO remove the first caracter
                 cnpj = cnpj.substring(1);
             }
             allCnpj.add(cnpj);

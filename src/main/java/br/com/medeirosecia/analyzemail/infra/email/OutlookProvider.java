@@ -88,7 +88,6 @@ public class OutlookProvider implements EmailProvider {
             this.graphClient = getServiceClient();
 
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 

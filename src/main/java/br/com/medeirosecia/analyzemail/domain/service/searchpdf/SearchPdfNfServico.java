@@ -37,13 +37,13 @@ public class SearchPdfNfServico extends SearchPdfAbstract {
 
     @Override
     public String cnpjPayer() {
-        // TODO
+        // FEAT pagador de CNPJ para NFS-e
         return "";
     }
 
     @Override
     public String cnpjSupplier() {
-        // TODO
+        // FEAT fornecedora de CNPJ para NFS-e
         return "";
     }
 
