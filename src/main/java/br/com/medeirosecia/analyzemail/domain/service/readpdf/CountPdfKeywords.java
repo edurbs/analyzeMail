@@ -14,7 +14,10 @@ public class CountPdfKeywords {
     private Integer keywordsBoleto = 0;
     private Integer keywordsOther = 0;
 
+    private String pdfText;
+
     public CountPdfKeywords(String pdfText) {
+        this.pdfText = pdfText;
 
         Map<PdfType, Integer> keywordCountMap = new EnumMap<>(PdfType.class);
 
@@ -52,6 +55,11 @@ public class CountPdfKeywords {
     }
 
     public boolean isPdfBoleto() {
+        ReadPdfBoleto readPdfBoleto = new ReadPdfBoleto(pdfText);
+        if(!readPdfBoleto.linhaDigitavel().isBlank()){
+            keywordsBoleto += 6;
+        }
+
         return keywordsBoleto > 5
                 && keywordsBoleto > keywordsNfProduto
                 && keywordsBoleto > keywordsNfServico;

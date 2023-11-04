@@ -266,4 +266,8 @@ public class ReadPdfBoleto extends ReadPdfAbstract {
         return accessKey;
     }
 
+    public String linhaDigitavel(){
+        return accessKey();
+    }
+
 }

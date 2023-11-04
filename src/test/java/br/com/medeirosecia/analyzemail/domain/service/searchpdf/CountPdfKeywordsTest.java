@@ -31,15 +31,25 @@ class CountPdfKeywordsTest {
 
     @ParameterizedTest
     @CsvSource(textBlock = """
-                    boletoSicredi.pdf
-                    boletoSicredi2.pdf
-                    boletoVivo.pdf
-                    boletoSafra.pdf
-                    boletoBB2.pdf
-                    boletoBB.pdf
-                    guiaFunrural.pdf
+            boletoBB.pdf
+            boletoBB2.pdf
+            boletoFesaMT.pdf
+            boletoSafra.pdf
+            boletoSafra2.pdf
+            boletoSicredi.pdf
+            boletoSicredi2.pdf
+            boletoVivo.pdf
+            guiaDARF.pdf
+            guiaDARF2.pdf
+            guiaFunrural.pdf
+            guiaGRF.pdf
+            guiaGRRF.pdf
+            darMT.pdf
+            darMT2.pdf
+            darMT3.pdf
             """)
     void testIsPdfBoleto(String fileName) {
+        // TODO add more boleto count keywords tests
         setUp(fileName);
         Assertions.assertTrue(countPdfKeywords.isPdfBoleto());
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
@@ -51,6 +61,7 @@ class CountPdfKeywordsTest {
     @ParameterizedTest
     @ValueSource(strings = { "nfe1.pdf", "nfe2.pdf", "nfe3.pdf" })
     void testIsPdfNfProduto(String fileName) {
+        // TODO add more boleto count keywords tests
         setUp(fileName);
         Assertions.assertTrue(countPdfKeywords.isPdfNfProduto());
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
@@ -68,6 +79,7 @@ class CountPdfKeywordsTest {
             "nfse7.pdf",
             "nfSoImagemNFSCuiaba.pdf" })
     void testIsPdfNfServico(String fileName) {
+        // TODO NFS count keywords tests
         setUp(fileName);
         Assertions.assertTrue(countPdfKeywords.isPdfNfServico());
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
@@ -77,8 +89,14 @@ class CountPdfKeywordsTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "energisa.pdf", "energisa2.pdf" })
+    @CsvSource(textBlock = """
+        energisa.pdf
+        energisa2.pdf
+        energisa3.pdf
+        energisa4.pdf
+    """)
     void testIsPdfEnergisa(String fileName) {
+        // FIXME energisa count keywords tests
         setUp(fileName);
         Assertions.assertTrue(countPdfKeywords.isPdfEnergisa());
         Assertions.assertFalse(countPdfKeywords.isPdfOther());

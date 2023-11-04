@@ -12,7 +12,6 @@ class SearchPdfBoletoTest {
     ReadPdfBoleto searchPdfBoleto;
     PdfTestUtils pdfUtils = new PdfTestUtils();
 
-
     void setUpOnePage(String fileName) {
         String pdfText = pdfUtils.getFirstPage(fileName);
         searchPdfBoleto = new ReadPdfBoleto(pdfText);
