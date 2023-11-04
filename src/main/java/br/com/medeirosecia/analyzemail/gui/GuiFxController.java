@@ -4,7 +4,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 import br.com.medeirosecia.analyzemail.domain.service.email.AnalyzeInbox;
@@ -77,28 +76,38 @@ public class GuiFxController implements Initializable {
     void buttonSearchCnpjClicked(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecione o arquivo de CNPJ");
+
+        setInitialDirectory(configFile.getPathCnpjPayersPath(), fileChooser);
+
         File fileSelected = fileChooser.showOpenDialog(null);
 
-        Optional.ofNullable(fileSelected.getAbsolutePath()).ifPresent(textFieldPathCnpj::setText);
-
-        Optional.ofNullable(textFieldPathCnpj.getText()).ifPresent(path -> {
+        if (fileSelected != null) {
+            String path = fileSelected.getAbsolutePath();
+            textFieldPathCnpj.setText(path);
             configFile.setPathCnpjPayersPath(path);
-        });
+        }
 
     }
 
     @FXML
     void buttonSearchFolderClicked(ActionEvent event) {
+
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Selecione a pasta raiz para armazenar os arquivos");
+
+        String startFolder = configFile.getBaseFolder();
+        if (!startFolder.isBlank()) {
+            directoryChooser.setInitialDirectory(new File(startFolder));
+        }
+
         File folderSelected = directoryChooser.showDialog(null);
 
-        Optional.ofNullable(folderSelected.getAbsolutePath()).ifPresent(textFieldPathFolder::setText);
-
-        Optional.ofNullable(textFieldPathFolder.getText()).ifPresent(path -> {
-            baseFolders.setBaseFolder(path);
+        if (folderSelected != null) {
+            String path = folderSelected.getAbsolutePath();
+            textFieldPathFolder.setText(path);
             configFile.setBaseFolder(path);
-        });
+            baseFolders.setBaseFolder(path);
+        }
 
     }
 
@@ -106,12 +115,26 @@ public class GuiFxController implements Initializable {
     void buttonCredentialClicked(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecione o arquivo de credenciais");
+
+        setInitialDirectory(configFile.getPathCnpjPayersPath(), fileChooser);
+
         File fileSelected = fileChooser.showOpenDialog(null);
-        textFieldPathCredentials.setText(fileSelected.getAbsolutePath());
 
-        baseFolders.setPathCredentials(textFieldPathCredentials.getText());
-        configFile.setCredentialsFilePath(textFieldPathCredentials.getText());
+        if (fileSelected != null) {
+            String path = fileSelected.getAbsolutePath();
+            textFieldPathCredentials.setText(path);
+            baseFolders.setPathCredentials(path);
+            configFile.setCredentialsFilePath(path);
+        }
 
+    }
+
+    private void setInitialDirectory(String fullFilePath, FileChooser fileChooser) {
+        String folderPath = fullFilePath.substring(0, fullFilePath.lastIndexOf(File.separator));
+
+        if (!folderPath.isBlank()) {
+            fileChooser.setInitialDirectory(new File(folderPath));
+        }
     }
 
     @FXML
