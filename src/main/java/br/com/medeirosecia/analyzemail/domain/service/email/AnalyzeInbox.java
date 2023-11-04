@@ -1,6 +1,5 @@
 package br.com.medeirosecia.analyzemail.domain.service.email;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.Map;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailLabelDAO;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
-import br.com.medeirosecia.analyzemail.domain.service.csv.CsvFileHandler;
 import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandleArchive;
 import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandleAttachmentType;
 import br.com.medeirosecia.analyzemail.domain.service.email.attachment.HandlePdf;
@@ -41,9 +39,7 @@ public class AnalyzeInbox extends Task<Void> {
     @Override
     public Void call() throws Exception {
 
-        var csv = new CsvFileHandler();
-        csv.checkHeaderBoleto();
-        csv.checkHeaderNf();
+        // TODO make this method smaller
 
         if (!checkLabel()) {
             updateMessage("Etiqueta não encontrada!");

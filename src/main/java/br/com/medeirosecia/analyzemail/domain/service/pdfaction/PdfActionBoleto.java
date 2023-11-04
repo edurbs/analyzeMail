@@ -1,10 +1,13 @@
 package br.com.medeirosecia.analyzemail.domain.service.pdfaction;
 
+import java.io.File;
+
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.domain.service.csv.CsvFileHandler;
 import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdf;
 import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdfBoleto;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
+import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
+import br.com.medeirosecia.analyzemail.infra.filesystem.CsvFile;
 
 public class PdfActionBoleto extends PdfActionAbstract {
 
@@ -36,9 +39,21 @@ public class PdfActionBoleto extends PdfActionAbstract {
                 filename
         };
 
-        new CsvFileHandler().addBoletoRow(row);
+        String[] header = new String[] {
+            "CNPJ Pagador",
+            "CNPJ Fornecedor",
+            "Data Vencimento",
+            "Valor",
+            "Linha digitável",
+            "Nome do arquivo"
+        };
 
 
+        String csvFilePath =  new ConfigFile().getBaseFolder()+File.pathSeparator+"PlanilhaBoleto-AnalyzedMail.csv";
+
+        var csvFile = new CsvFile(csvFilePath, header);
+
+        csvFile.addRow(row);
 
     }
 
