@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
 public enum PdfType {
 

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -15,7 +17,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.Base64;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
@@ -81,8 +82,8 @@ public class GmailProvider implements EmailProvider {
 		// Build a new authorized API client service.
 
 		try {
-			final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-			this.service = new Gmail.Builder(HTTP_TRANSPORT, jsonFactory, getCredentials(HTTP_TRANSPORT))
+			final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+			this.service = new Gmail.Builder(httpTransport, jsonFactory, getCredentials(httpTransport))
 					.setApplicationName(APPLICATION_NAME)
 					.build();
 
@@ -155,7 +156,6 @@ public class GmailProvider implements EmailProvider {
 				listEmailMessagesDAO.add(emailMessage);
 			}
 		}
-		return;
 	}
 
 	public void getAllMessages(List<EmailMessageDAO> listEmailMessagesDAO) {
@@ -193,17 +193,27 @@ public class GmailProvider implements EmailProvider {
 		return;
 	}
 
+
+
 	private byte[] downloadAttachment(MessagePart part, String messageId) {
 		String attId = part.getBody().getAttachmentId();
-		MessagePartBody attachPart;
 		try {
-			attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();
-			return Base64.decodeBase64(attachPart.getData());
-
+			return getAttachmentData(user, messageId, attId);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		return new byte[0];
+	}
+
+	private byte[] getAttachmentData(String user, String messageId, String attId)
+			throws IOException {
+
+		// TODO teste google base64 at getting attachment
+		return Base64.decodeBase64(
+			service.users().messages().attachments()
+				.get(user, messageId, attId)
+				.execute()
+				.getData());
 	}
 
 	public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions) {

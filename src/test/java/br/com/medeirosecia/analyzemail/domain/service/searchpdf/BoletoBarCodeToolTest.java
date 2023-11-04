@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoBarCodeTool;
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoType;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoBarCodeTool;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoType;
 
 class BoletoBarCodeToolTest {
 

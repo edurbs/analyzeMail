@@ -2,8 +2,8 @@ package br.com.medeirosecia.analyzemail.domain.service.pdfaction;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
 import br.com.medeirosecia.analyzemail.domain.service.csv.CsvFileHandler;
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.SearchPdf;
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.SearchPdfBoleto;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdf;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdfBoleto;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 
 public class PdfActionBoleto extends PdfActionAbstract {
@@ -14,7 +14,7 @@ public class PdfActionBoleto extends PdfActionAbstract {
 
 
 
-        SearchPdf searchPdf = new SearchPdfBoleto(pdfText);
+        ReadPdf searchPdf = new ReadPdfBoleto(pdfText);
         String[] date = searchPdf.date();
 
         String filename = new BaseFolders().savePdfBoleto(attachment, date);

@@ -10,7 +10,7 @@ import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionInterfa
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfProduto;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfServico;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionOther;
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.CountPdfKeywords;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.CountPdfKeywords;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
 public class HandlePdfPage {

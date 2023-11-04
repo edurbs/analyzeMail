@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
 import java.util.Arrays;
 import java.util.EnumMap;

@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

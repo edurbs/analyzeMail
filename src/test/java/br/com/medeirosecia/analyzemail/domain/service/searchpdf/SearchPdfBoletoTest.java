@@ -6,14 +6,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdfBoleto;
+
 class SearchPdfBoletoTest {
-    SearchPdfBoleto searchPdfBoleto;
+    ReadPdfBoleto searchPdfBoleto;
     PdfTestUtils pdfUtils = new PdfTestUtils();
 
 
     void setUpOnePage(String fileName) {
         String pdfText = pdfUtils.getFirstPage(fileName);
-        searchPdfBoleto = new SearchPdfBoleto(pdfText);
+        searchPdfBoleto = new ReadPdfBoleto(pdfText);
     }
 
     List<String> setUpMultiplePage(String fileName){

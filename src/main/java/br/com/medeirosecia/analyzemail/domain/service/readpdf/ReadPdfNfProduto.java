@@ -1,13 +1,13 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SearchPdfNfProduto extends SearchPdfAbstract {
+public class ReadPdfNfProduto extends ReadPdfAbstract {
 
     private String accessKey;
 
-    public SearchPdfNfProduto(String textToSearchIn) {
+    public ReadPdfNfProduto(String textToSearchIn) {
         super(textToSearchIn);
         this.accessKey = accessKey();
     }

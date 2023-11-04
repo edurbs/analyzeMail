@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,11 +16,11 @@ import java.util.stream.Collectors;
 
 import br.com.medeirosecia.analyzemail.domain.service.cnpj.CnpjSearch;
 import br.com.medeirosecia.analyzemail.domain.service.date.DateSearch;
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoBarCodeTool;
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto.BoletoType;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoBarCodeTool;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoType;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
-public class SearchPdfBoleto extends SearchPdfAbstract {
+public class ReadPdfBoleto extends ReadPdfAbstract {
 
     private static final String LOCAL_DATE_FORMAT = "dd/MM/yyyy";
 
@@ -29,7 +29,7 @@ public class SearchPdfBoleto extends SearchPdfAbstract {
     private BoletoType boletoType;
     private List<String> allCnpjInPdf = new ArrayList<>();
 
-    public SearchPdfBoleto(String textToSearchIn) {
+    public ReadPdfBoleto(String textToSearchIn) {
         super(textToSearchIn);
         setType();
         accessKey();

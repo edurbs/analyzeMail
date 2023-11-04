@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf.boleto;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto;
 
 public enum BoletoType {
         CONSUMO_VIVO(new String[] { "Cód. Débito Automático",

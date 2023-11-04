@@ -1,6 +1,6 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
-public interface SearchPdf {
+public interface ReadPdf {
 
     public String[] date();
     public String cnpjPayer();

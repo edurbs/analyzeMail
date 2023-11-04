@@ -1,11 +1,11 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
 import br.com.medeirosecia.analyzemail.domain.service.date.DateSearch;
 
-public class SearchPdfNfServico extends SearchPdfAbstract {
+public class ReadPdfNfServico extends ReadPdfAbstract {
 
 
-    public SearchPdfNfServico(String textToSearchIn) {
+    public ReadPdfNfServico(String textToSearchIn) {
         super(textToSearchIn);
 
     }
