@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

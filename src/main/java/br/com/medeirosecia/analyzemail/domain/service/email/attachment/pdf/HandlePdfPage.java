@@ -1,6 +1,6 @@
 package br.com.medeirosecia.analyzemail.domain.service.email.attachment.pdf;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +10,8 @@ import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionInterfa
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfProduto;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfServico;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionOther;
-import br.com.medeirosecia.analyzemail.domain.service.readpdf.CountPdfKeywords;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.DefinePdfType;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.PdfType;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
 public class HandlePdfPage {
@@ -19,19 +20,21 @@ public class HandlePdfPage {
 
         pdfPageText = pdfPageText.toLowerCase();
 
-        var countKeywords = new CountPdfKeywords(pdfPageText);
+        DefinePdfType definePdfType = new DefinePdfType(pdfPageText);
+        PdfType pdfType = definePdfType.getPdfType();
 
-        final Map<Boolean, PdfActionInterface> map = new HashMap<>();
-        //map.put(countKeywords.isPdfEnergisa(), new PdfActionBoleto());
-        map.put(countKeywords.isPdfNfProduto(), new PdfActionNfProduto());
-        map.put(countKeywords.isPdfNfServico(), new PdfActionNfServico());
-        map.put(countKeywords.isPdfBoleto(), new PdfActionBoleto());
-        map.put(countKeywords.isPdfOther(), new PdfActionOther());
+        // create a class to store this relationship of the map
 
+        final Map<PdfType, PdfActionInterface> mapPdfActionByType = new EnumMap<>(PdfType.class);
+        mapPdfActionByType.put(PdfType.NF_PRODUTO, new PdfActionNfProduto());
+        mapPdfActionByType.put(PdfType.NF_SERVICO, new PdfActionNfServico());
+        mapPdfActionByType.put(PdfType.BOLETO, new PdfActionBoleto());
+        mapPdfActionByType.put(PdfType.OUTRO, new PdfActionOther());
 
+        PdfActionInterface pdfAction = mapPdfActionByType.get(pdfType);
 
-        PdfActionInterface pdfAction = map.get(true);
         pdfAction.setCnpjPayers(cnpjListPayers);
         pdfAction.save(emailAttachmentDAO, pdfPageText);
+
     }
 }

@@ -3,18 +3,15 @@ package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ReadPdfNfProduto extends ReadPdfAbstract {
+public class ReadPdfNfProduto implements ReadPdfInterface {
 
     private String accessKey;
+    private String textToSearchIn;
 
-    public ReadPdfNfProduto(String textToSearchIn) {
-        super(textToSearchIn);
-        this.accessKey = accessKey();
-    }
 
     @Override
     public String accessKey(){
-        if (accessKey != null && !accessKey.isBlank()) {
+        if (accessKey != null && !accessKey.isBlank() || textToSearchIn == null || textToSearchIn.isBlank()) {
             return this.accessKey;
         }
 
@@ -76,6 +73,7 @@ public class ReadPdfNfProduto extends ReadPdfAbstract {
     @Override
     public void setText(String textToSearchIn) {
         this.textToSearchIn = textToSearchIn;
+        this.accessKey = accessKey();
     }
 
 

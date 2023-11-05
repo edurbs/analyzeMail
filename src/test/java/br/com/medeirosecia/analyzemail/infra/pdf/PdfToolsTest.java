@@ -5,7 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import br.com.medeirosecia.analyzemail.domain.service.searchpdf.PdfTestUtils;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.PdfTestUtils;
 
 class PdfToolsTest {
     @Test

@@ -1,4 +1,4 @@
-package br.com.medeirosecia.analyzemail.domain.service.searchpdf;
+package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -9,9 +9,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
-import br.com.medeirosecia.analyzemail.AnalyzemailApplication;
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-
 import br.com.medeirosecia.analyzemail.infra.pdf.PdfTools;
 
 public class PdfTestUtils {

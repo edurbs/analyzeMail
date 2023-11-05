@@ -3,13 +3,8 @@ package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -20,52 +15,16 @@ import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoBarCo
 import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoType;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ReadCnpjFile;
 
-public class ReadPdfBoleto extends ReadPdfAbstract {
+public class ReadPdfBoleto implements ReadPdfInterface {
 
     private static final String LOCAL_DATE_FORMAT = "dd/MM/yyyy";
 
     private String[] date;
     private String accessKey;
+    private String textToSearchIn;
     private BoletoType boletoType;
     private List<String> allCnpjInPdf = new ArrayList<>();
 
-    public ReadPdfBoleto(String textToSearchIn) {
-        super(textToSearchIn);
-        setType();
-        accessKey();
-    }
-
-
-
-    private void setType() {
-
-        boletoType = BoletoType.COMUM;
-
-        Map<BoletoType, Integer> keywordCountMap = new EnumMap<>(BoletoType.class);
-
-        for (BoletoType type : BoletoType.values()) {
-            String[] keywords = type.getBoletoKeyWords();
-            Set<String> keywordsSet = new HashSet<>(Arrays.asList(keywords));
-
-            int keywordsFound = 0;
-            for (String keyword : keywordsSet) {
-                if(textToSearchIn.contains(keyword.toLowerCase())){
-                    keywordsFound++;
-                }
-            }
-            keywordCountMap.put(type, keywordsFound);
-        }
-
-        int maxKeywords = 0;
-        for (Map.Entry<BoletoType, Integer> entry : keywordCountMap.entrySet()) {
-            if (entry.getValue() > maxKeywords) {
-                maxKeywords = entry.getValue();
-                boletoType = entry.getKey();
-            }
-        }
-
-
-    }
 
     @Override
     public String[] date() {
@@ -84,6 +43,10 @@ public class ReadPdfBoleto extends ReadPdfAbstract {
 
 
     private String[] dateInText() {
+
+        if(textToSearchIn ==null || textToSearchIn.isBlank()){
+            return new String[3];
+        }
 
         DateSearch dateSearch = new DateSearch(textToSearchIn);
         List<String[]> allDates = dateSearch.allDates();
@@ -116,7 +79,7 @@ public class ReadPdfBoleto extends ReadPdfAbstract {
     }
 
     private void searchAllCnpjInPdf() {
-        if (allCnpjInPdf.isEmpty()) {
+        if (allCnpjInPdf.isEmpty() && textToSearchIn != null && !textToSearchIn.isBlank()) {
             allCnpjInPdf = new CnpjSearch(textToSearchIn).all();
         }
     }
@@ -202,6 +165,10 @@ public class ReadPdfBoleto extends ReadPdfAbstract {
 
     public Double valueFromText() {
 
+        if(textToSearchIn ==null || textToSearchIn.isBlank()){
+            return 0d;
+        }
+
         final String regex = "\\b\\d{1,3}(?:\\.\\d{3})*(?:,\\d{2})\\b|\\b\\d+(?:,\\d{2})\\b";
         Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
 
@@ -231,11 +198,13 @@ public class ReadPdfBoleto extends ReadPdfAbstract {
     @Override
     public void setText(String textToSearchIn) {
         this.textToSearchIn = textToSearchIn;
+        boletoType = new DefinePdfType(textToSearchIn).getBoletoType();
+        accessKey();
     }
 
     @Override
     public String accessKey() {
-        if (accessKey == null) {
+        if (accessKey == null && textToSearchIn != null && !textToSearchIn.isBlank()) {
             // código do boleto
             final String[] regex = {
                     "\\d{5}\\.\\d{5} \\d{5}\\.\\d{6} \\d{5}\\.\\d{6} \\d{1} \\d{14}", // normal boleto

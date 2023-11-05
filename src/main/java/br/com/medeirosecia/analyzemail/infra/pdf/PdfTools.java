@@ -71,7 +71,7 @@ public class PdfTools {
         }
 
 
-        if (pdfText.length() < 10 || countCommomWords == 0 ) {
+        if (pdfText.length() < 10 || countCommomWords <= 2 ) {
             pdfText = new OcrTools(pdfDocument).getTextFromPage(page);
         }
 

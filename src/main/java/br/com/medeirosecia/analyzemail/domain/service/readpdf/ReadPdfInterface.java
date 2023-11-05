@@ -1,6 +1,6 @@
 package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
-public interface ReadPdf {
+public interface ReadPdfInterface {
 
     public String[] date();
     public String cnpjPayer();

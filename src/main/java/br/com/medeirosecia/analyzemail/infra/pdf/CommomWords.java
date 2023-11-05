@@ -1,10 +1,10 @@
 package br.com.medeirosecia.analyzemail.infra.pdf;
 
 public enum CommomWords {
-    PORTUGUES(new String[] { "Não", "Para", "Uma", "Está", "Com", "Por", "Ele", "Mais", "Mas", "Como", "Dos", "Seu",
-            "Sua", "Muito", "Nos", "Quando", "Também", "Ainda", "Mesmo", "Bem", "Sem", "Ser", "Ter",
+    PORTUGUES(new String[] { "Não", "Para", "Está", "Mais",
+             "Muito", "Quando", "Também", "Ainda", "Mesmo", "Bem",
             "Fazer", "Dizer", "Vida", "Tempo", "Ano", "Dia", "Parte", "Lugar", "Pessoa", "Coisa", "Amor",
-            "que", "Palavra", "Exemplo", "Coisa", "Temporada", "Momento", "Importante",
+             "Palavra", "Exemplo", "Coisa", "Temporada", "Momento", "Importante",
             "Informa", "Sistema", "Govern", "Desenvolv", "Comunica", "Traba", "Situa",
             "Dificul", "Condição", "Sociedade", "Econômico", "Necessi", "Relação",
             "Problema", "História", "Formação", "Produção", "Diferente", "Política", "Atividade", "Direção",

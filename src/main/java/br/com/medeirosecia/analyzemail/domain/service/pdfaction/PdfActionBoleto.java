@@ -3,7 +3,7 @@ package br.com.medeirosecia.analyzemail.domain.service.pdfaction;
 import java.io.File;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
-import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdf;
+import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdfInterface;
 import br.com.medeirosecia.analyzemail.domain.service.readpdf.ReadPdfBoleto;
 import br.com.medeirosecia.analyzemail.infra.filesystem.BaseFolders;
 import br.com.medeirosecia.analyzemail.infra.filesystem.ConfigFile;
@@ -15,9 +15,9 @@ public class PdfActionBoleto extends PdfActionAbstract {
     @Override
     public void save(EmailAttachmentDAO attachment, String pdfText) {
 
+        ReadPdfInterface searchPdf = new ReadPdfBoleto();
+        searchPdf.setText(pdfText);
 
-
-        ReadPdf searchPdf = new ReadPdfBoleto(pdfText);
         String[] date = searchPdf.date();
 
         String filename = new BaseFolders().savePdfBoleto(attachment, date);

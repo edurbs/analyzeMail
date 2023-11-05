@@ -1,5 +1,11 @@
 package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
+import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionBoleto;
+import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionInterface;
+import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfProduto;
+import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfServico;
+import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionOther;
+
 public enum PdfType {
 
         NF_PRODUTO(new String[] { "nota fiscal", "emissão",
@@ -48,6 +54,32 @@ public enum PdfType {
 
         public String[] getKeyWords() {
                 return this.keyWords;
+        }
+
+        public ReadPdfInterface getReadPdf(){
+                switch(this){
+                        case NF_PRODUTO:
+                                return new ReadPdfNfProduto();
+                        case NF_SERVICO:
+                                return new ReadPdfNfServico();
+                        case BOLETO:
+                                return new ReadPdfBoleto();
+                        default:
+                                return new ReadPdfOutro();
+                }
+        }
+
+        public PdfActionInterface getPdfAction(){
+                switch(this){
+                        case NF_PRODUTO:
+                                return new PdfActionNfProduto();
+                        case NF_SERVICO:
+                                return new PdfActionNfServico();
+                        case BOLETO:
+                                return new PdfActionBoleto();
+                        default:
+                                return new PdfActionOther();
+                }
         }
 
 }
