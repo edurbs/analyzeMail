@@ -22,11 +22,13 @@ public class HandlePdfPage {
         var countKeywords = new CountPdfKeywords(pdfPageText);
 
         final Map<Boolean, PdfActionInterface> map = new HashMap<>();
-        map.put(countKeywords.isPdfEnergisa(), new PdfActionBoleto());
+        //map.put(countKeywords.isPdfEnergisa(), new PdfActionBoleto());
         map.put(countKeywords.isPdfNfProduto(), new PdfActionNfProduto());
         map.put(countKeywords.isPdfNfServico(), new PdfActionNfServico());
         map.put(countKeywords.isPdfBoleto(), new PdfActionBoleto());
         map.put(countKeywords.isPdfOther(), new PdfActionOther());
+
+
 
         PdfActionInterface pdfAction = map.get(true);
         pdfAction.setCnpjPayers(cnpjListPayers);
