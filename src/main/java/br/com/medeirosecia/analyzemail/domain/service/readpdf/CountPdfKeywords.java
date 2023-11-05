@@ -71,6 +71,11 @@ public class CountPdfKeywords {
 
 
     public boolean isPdfNfProduto() {
+        ReadPdfNfProduto readPdfNfProduto = new ReadPdfNfProduto(pdfText);
+        String accessKey = readPdfNfProduto.accessKey();
+        if(accessKey!=null){
+            keywordsNfProduto += 7;
+        }
         return keywordsNfProduto > 6
                 && keywordsNfProduto > keywordsBoleto;
     }
@@ -82,7 +87,8 @@ public class CountPdfKeywords {
 
     public boolean isPdfBoleto() {
         ReadPdfBoleto readPdfBoleto = new ReadPdfBoleto(pdfText);
-        if(!readPdfBoleto.linhaDigitavel().isBlank()){
+        String linhaDigitavel = readPdfBoleto.linhaDigitavel();
+        if(linhaDigitavel!=null){
             keywordsBoleto += 6;
         }
 

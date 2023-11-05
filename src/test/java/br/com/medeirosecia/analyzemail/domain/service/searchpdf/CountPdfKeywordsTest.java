@@ -49,20 +49,38 @@ class CountPdfKeywordsTest {
             darMT3.pdf
             """)
     void testIsPdfBoleto(String fileName) {
-        // TODO add more boleto count keywords tests
+
         setUp(fileName);
+
         Assertions.assertTrue(countPdfKeywords.isPdfBoleto());
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
         Assertions.assertFalse(countPdfKeywords.isPdfNfProduto());
         Assertions.assertFalse(countPdfKeywords.isPdfNfServico());
-        //Assertions.assertFalse(countPdfKeywords.isPdfEnergisa());
+
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "nfe1.pdf", "nfe2.pdf", "nfe3.pdf" })
+    @CsvSource(textBlock = """
+        nfe1.PDF
+        nfe10.pdf
+        nfe11.pdf
+        nfe12.pdf
+        nfe13.pdf
+        nfe2.pdf
+        nfe3.pdf
+        nfe4.pdf
+        nfe5.pdf
+        nfe6.pdf
+        nfe7.pdf
+        nfe8.pdf
+        nfe9.pdf
+        nfeImagem1.pdf
+        nfeImagem2.pdf
+            """)
     void testIsPdfNfProduto(String fileName) {
-        // TODO add more boleto count keywords tests
+
         setUp(fileName);
+
         Assertions.assertTrue(countPdfKeywords.isPdfNfProduto());
         Assertions.assertFalse(countPdfKeywords.isPdfOther());
         Assertions.assertFalse(countPdfKeywords.isPdfNfServico());
