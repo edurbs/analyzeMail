@@ -16,8 +16,9 @@ public enum PdfType {
 
         NF_SERVICO(new String[] { "tomador", "serviço", "prestador", "nfs-e", "rps", "iss", "prefeitura",
                         "municipal", "issqn", "serviços eletrônica", "nota fiscal eletrônica de serviços",
-                        "Nota fiscal de serviço",
-                        "Nota fiscal avulsa" }),
+                        "Nota fiscal de serviço", "EMITENTE DA NFS-e", "Competência da NFS-e", "Data e Hora da emissão da NFS-e",
+                        "Número da NFS-e", "Número da DPS", "Chave de Acesso da NFS-e", "Documento Auxiliar da NFS-e", "DANFSe v1.0",
+                        "Nota fiscal avulsa", "EMITENTE DA NFS-e", "SERVIÇO PRESTADO", "VALOR TOTAL DA NFS-E", "TOMADOR DO SERVIÇO" }),
 
 
         BOLETO(new String[] { "vencimento", "cedente", "referência", "pagador", "beneficiário",

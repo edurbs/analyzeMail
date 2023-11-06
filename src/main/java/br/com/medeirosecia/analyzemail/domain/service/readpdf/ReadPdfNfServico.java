@@ -66,7 +66,7 @@ public class ReadPdfNfServico implements ReadPdfInterface {
     @Override
     public String accessKey() {
         if(accesskey.isBlank() && textToSearchIn!=null && !textToSearchIn.isBlank()){
-            String nfseRegex = "^\\d{50}$";
+            String nfseRegex = "\\d{50}";
 
             Pattern pattern = Pattern.compile(nfseRegex);
             Matcher matcher = pattern.matcher(textToSearchIn);

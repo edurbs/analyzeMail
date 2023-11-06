@@ -104,12 +104,26 @@ class DefinePdfTypeTest {
 
     @ParameterizedTest
     @CsvSource(textBlock = """
+            nfse5.pdf
+            nfseNacional.pdf
+                """)
+    void testIsPdfNfServicoNacional(String fileName) {
+
+        setUp(fileName);
+
+        Assertions.assertEquals(PdfType.NF_SERVICO, definePdfType.getPdfType());
+
+    }
+
+
+    @ParameterizedTest
+    @CsvSource(textBlock = """
                 energisa.pdf
                 energisa2.pdf
                 energisa3.pdf
             """)
     void testIsPdfEnergisa(String fileName) {
-        // FIXME energisa count keywords tests
+
         setUp(fileName);
         Assertions.assertEquals(PdfType.BOLETO, definePdfType.getPdfType());
         Assertions.assertEquals(BoletoType.ENERGISA, definePdfType.getBoletoType());
