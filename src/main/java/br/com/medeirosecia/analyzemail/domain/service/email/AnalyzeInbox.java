@@ -38,71 +38,39 @@ public class AnalyzeInbox extends Task<Void> {
 
     @Override
     public Void call() throws Exception {
-
-        // TODO make this method smaller
-
-        if (!checkLabel()) {
-            updateMessage("Etiqueta não encontrada!");
-            return null;
-        }
-
         Map<String, HandleAttachmentType> extensionsMap = new HashMap<>();
         extensionsMap.put("PDF", new HandlePdf());
         extensionsMap.put("XML", new HandleXML());
         extensionsMap.put("ZIP", new HandleArchive());
         extensionsMap.put("RAR", new HandleArchive());
         // FEAT handle archive with 7z format
-        // extensionsMap.put("7Z", new HandleArchive());
 
         String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
 
-        List<EmailMessageDAO> listMessages = new ArrayList<>();
-        updateMessage("Lendo quantidade de e-emails...");
-        if (this.analizeAllMessages) {
-            emailProvider.getAllMessages(listMessages);
-        } else {
-            emailProvider.getMessagesWithoutLabel(listMessages);
+        if (!checkLabel()) {
+            updateMessage("Etiqueta não encontrada!");
+            return null;
         }
 
-        // FEAT get int number of total messages for outlook
+        List<EmailMessageDAO> listMessages = getListMessages();
+
+        // TODO get int number of total messages for outlook
 
         int messageNumberActual = 1;
         String userMsg = "";
         while (emailProvider.hasMoreMessages() || messageNumberActual <= listMessages.size()) {
 
-
-            while (listMessages.size() < messageNumberActual) {
-                updateMessage("Aguardando nova lista de e-mails...");
-
-                updateProgress(-1, -1);
-                emailProvider.loadMoreMessages(true);
-                Thread.sleep(1000);
-            }
-            emailProvider.loadMoreMessages(false);
+            getMoreMessages(listMessages, messageNumberActual);
 
             updateProgress(messageNumberActual, listMessages.size());
             userMsg = "Msg " + messageNumberActual + " de " + listMessages.size() + ". ";
 
             updateMessage(userMsg + "Baixando anexos...");
-            var messageActual = listMessages.get(messageNumberActual-1);
+            EmailMessageDAO messageActual = listMessages.get(messageNumberActual-1);
             List<EmailAttachmentDAO> attachments = emailProvider.listAttachments(messageActual, extensions);
 
             updateMessage(userMsg + "Analizando anexos...");
-
-            for (EmailAttachmentDAO attachment : attachments) {
-                if (!Thread.currentThread().isInterrupted()) {
-                    String filename = attachment.getFileName();
-                    String extension = getExtension(filename);
-
-                    updateMessage(userMsg + extension + ": " + filename);
-
-                    HandleAttachmentType handleAttachment = extensionsMap.get(extension);
-                    handleAttachment.analyzeAttachment(attachment);
-                } else {
-                    updateMessage("Finalizando ...");
-                    break;
-                }
-            }
+            analyzeAttachments(extensionsMap, userMsg, attachments);
 
             updateMessage(userMsg + "Marcando mensagem como analisada...");
             emailProvider.setMessageWithThisLabel(messageActual.getId());
@@ -113,18 +81,57 @@ public class AnalyzeInbox extends Task<Void> {
             }
 
             messageNumberActual++;
-
         }
 
         updateMessage("Finalizado. Analizados " + (messageNumberActual-1) + " de " + listMessages.size() + " e-mails.");
 
-        // FEAT after finish, convert CSV to Excel file
+        // TODO after finish, convert CSV to Excel file
 
         if (Thread.currentThread().isInterrupted()) {
             Thread.currentThread().interrupt();
         }
 
         return null;
+    }
+
+    private void analyzeAttachments(Map<String, HandleAttachmentType> extensionsMap, String userMsg,
+            List<EmailAttachmentDAO> attachments) {
+        for (EmailAttachmentDAO attachment : attachments) {
+            if (!Thread.currentThread().isInterrupted()) {
+                String filename = attachment.getFileName();
+                String extension = getExtension(filename);
+
+                updateMessage(userMsg + extension + ": " + filename);
+
+                HandleAttachmentType handleAttachment = extensionsMap.get(extension);
+                handleAttachment.analyzeAttachment(attachment);
+            } else {
+                updateMessage("Finalizando ...");
+                break;
+            }
+        }
+    }
+
+    private void getMoreMessages(List<EmailMessageDAO> listMessages, int messageNumberActual) throws InterruptedException {
+        while (listMessages.size() < messageNumberActual) {
+            updateMessage("Aguardando nova lista de e-mails...");
+
+            updateProgress(-1, -1);
+            emailProvider.loadMoreMessages(true);
+            Thread.sleep(1000);
+        }
+        emailProvider.loadMoreMessages(false);
+    }
+
+    private List<EmailMessageDAO> getListMessages() {
+        List<EmailMessageDAO> listMessages = new ArrayList<>();
+        updateMessage("Lendo quantidade de e-emails...");
+        if (this.analizeAllMessages) {
+            emailProvider.getAllMessages(listMessages);
+        } else {
+            emailProvider.getMessagesWithoutLabel(listMessages);
+        }
+        return listMessages;
     }
 
     private String getExtension(String filename) {

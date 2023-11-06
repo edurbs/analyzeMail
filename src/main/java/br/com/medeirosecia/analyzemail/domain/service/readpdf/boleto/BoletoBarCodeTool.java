@@ -25,6 +25,7 @@ public class BoletoBarCodeTool {
             case ENERGISA -> dueDate = getDateFromComum();
             case CONSUMO_VIVO -> dueDate = getDateFromConsumoVivo();
             case DARF -> dueDate = getDateFromDarf();
+            case DARF_SICALC -> dueDate = getDateFromDarfSicalc();
             case GRRF -> dueDate = getDateFromGrrf();
             case GRF -> dueDate = getDateFromGrf();
             case GRU_SIMPLES -> dueDate = getDateFromGruSimples();
@@ -32,14 +33,6 @@ public class BoletoBarCodeTool {
             default -> dueDate = getDateFromComum();
         }
 
-
-        // if (accessKey.length() == 47) {
-        //     dueDate = getDateFromComum();
-
-        // } else if (accessKey.length() == 48) {
-        //     getDateFromConsumo();
-
-        // }
         return dueDate;
     }
 
@@ -108,6 +101,18 @@ public class BoletoBarCodeTool {
 
     }
 
+    private String[] getDateFromDarfSicalc() {
+        if(accessKey==null || accessKey.isBlank()){
+            return ZERO_DATE;
+        }
+        String sub1 = accessKey.substring(21, 23);
+        String sub2 = accessKey.substring(24, 26);
+        int days = Integer.parseInt(sub1+sub2);
+
+        return sumDateDarfSicalc(days);
+
+    }
+
     private String[] getDateFromConsumoVivo() {
         if(accessKey==null || accessKey.isBlank()){
             return ZERO_DATE;
@@ -133,20 +138,29 @@ public class BoletoBarCodeTool {
     }
 
     private String[] sumDateFebraban(int days) {
-        Calendar startDateFebraban = Calendar.getInstance();
-        startDateFebraban.set(1997, 9, 7); // 7/10/1997
+        Calendar startDate = Calendar.getInstance();
+        startDate.set(1997, 9, 7); // 7/10/1997
 
         // FEAT handle boleto with year after 2025 (startdate 9999)
 
-        return sumDate(startDateFebraban, days);
+        return sumDate(startDate, days);
 
     }
 
     private String[] sumDateDarf(int days) {
-        Calendar startDateFebraban = Calendar.getInstance();
-        startDateFebraban.set(2014, 9, 14); // 14/10/2014
+        Calendar startDate = Calendar.getInstance();
+        startDate.set(2014, 9, 14); // 14/10/2014
 
-        return sumDate(startDateFebraban, days);
+        return sumDate(startDate, days);
+    }
+
+    private String[] sumDateDarfSicalc(int days){
+        Calendar startDate = Calendar.getInstance();
+
+        // se for DARF do Sicalc a data inicial é 10/07/2016
+        startDate.set(2016, 6, 10);
+
+        return sumDate(startDate, days);
     }
 
     private String[] sumDate(Calendar startDate, int days){
@@ -165,7 +179,7 @@ public class BoletoBarCodeTool {
         Double value;
         switch (boletoType) {
             case ENERGISA -> value = valueFromComum();
-            case CONSUMO_VIVO, DARF, GRRF, GRF, GRU_SIMPLES, SEFAZ_MT -> value = valueFromConsumo();
+            case CONSUMO_VIVO, DARF, DARF_SICALC, GRRF, GRF, GRU_SIMPLES, SEFAZ_MT -> value = valueFromConsumo();
             default -> value = valueFromComum();
         }
         return value;

@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +26,6 @@ public class ReadPdfBoleto implements ReadPdfInterface {
     private BoletoType boletoType;
     private List<String> allCnpjInPdf = new ArrayList<>();
 
-
     @Override
     public String[] date() {
         if (date == null) {
@@ -34,17 +34,16 @@ public class ReadPdfBoleto implements ReadPdfInterface {
             date = accessKeyTool.getDueDate();
         }
 
-        if(date[2].equals("0000")){
+        if (date[2].equals("0000")) {
             date = dateInText();
         }
         return date;
 
     }
 
-
     private String[] dateInText() {
 
-        if(textToSearchIn ==null || textToSearchIn.isBlank()){
+        if (textToSearchIn == null || textToSearchIn.isBlank()) {
             return new String[3];
         }
 
@@ -52,12 +51,11 @@ public class ReadPdfBoleto implements ReadPdfInterface {
         List<String[]> allDates = dateSearch.allDates();
         List<String> stringDates = formatDates(allDates);
         stringDates.sort(this::compareDates);
-        if(stringDates.isEmpty()){
-            return new String[]{"00", "00", "0000"};
-        }else{
+        if (stringDates.isEmpty()) {
+            return new String[] { "00", "00", "0000" };
+        } else {
             return stringDates.get(0).split("/");
         }
-
 
     }
 
@@ -78,10 +76,11 @@ public class ReadPdfBoleto implements ReadPdfInterface {
         }
     }
 
-    private void searchAllCnpjInPdf() {
+    private List<String> searchAllCnpjInPdf() {
         if (allCnpjInPdf.isEmpty() && textToSearchIn != null && !textToSearchIn.isBlank()) {
             allCnpjInPdf = new CnpjSearch(textToSearchIn).all();
         }
+        return allCnpjInPdf;
     }
 
     private List<String> searchAllCnpjWithoutSeparator() {
@@ -93,26 +92,128 @@ public class ReadPdfBoleto implements ReadPdfInterface {
 
         List<String> cnpjListPayers = new ReadCnpjFile().getCnpjListPayers();
 
-        String cnpjPayer="";
+        String cnpjPayer = "";
 
-        searchAllCnpjInPdf();
+        allCnpjInPdf = searchAllCnpjInPdf();
 
         cnpjPayer = listContains(allCnpjInPdf, cnpjListPayers);
 
-        if(cnpjPayer.isBlank()){
+        if (cnpjPayer.isBlank()) {
             var listCnpjWithOutSeparator = searchAllCnpjWithoutSeparator();
             cnpjPayer = listContains(listCnpjWithOutSeparator, cnpjListPayers);
+        }
+
+        if (!isValidCnpj(cnpjPayer)) {
+            cnpjPayer = "";
         }
 
         return cnpjPayer;
 
     }
 
+    /**
+     * Check if this CNPJ is valid
+     *
+     * @param cnpj String - 99.999.999/9999-99 or 99999999999999 format
+     * @return boolean
+     */
+    private boolean isValidCnpj(String cnpj) {
+        cnpj = cnpj.replace(".", "");
+        cnpj = cnpj.replace("-", "");
+        cnpj = cnpj.replace("/", "");
+        cnpj = cnpj.replace(" ", "");
 
+        try {
+            Long.parseLong(cnpj);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        for (int i = 0; i <= 9; i++) {
+            String number = String.valueOf(i);
+            String invalidCnpj = number.repeat(14);
+            if(cnpj.equals(invalidCnpj)) {
+                return false;
+            }
+        }
+
+        if(cnpj.length() != 14) {
+            return false;
+        }
+
+
+        try {
+            char dig13 = getCnpjDig13(cnpj);
+            char dig14 = getCnpjDig14(cnpj);
+
+            if (dig13 == cnpj.charAt(12) && dig14 == cnpj.charAt(13)) {
+                return true;
+            }
+        } catch (InputMismatchException erro) {
+            return false;
+        }
+        return false;
+    }
+
+    private char getCnpjDig14(String cnpj) throws InputMismatchException {
+        char dig14;
+        int sm;
+        int i;
+        int r;
+        int num;
+        int peso;
+        sm = 0;
+        peso = 2;
+        for (i = 12; i >= 0; i--) {
+            num = (int) (cnpj.charAt(i) - 48);
+            sm = sm + (num * peso);
+            peso = peso + 1;
+            if (peso == 10){
+                peso = 2;
+            }
+        }
+
+        r = sm % 11;
+        if (r == 0 || r == 1) {
+            dig14 = '0';
+        } else {
+            dig14 = (char) ((11 - r) + 48);
+        }
+        return dig14;
+    }
+
+    private char getCnpjDig13(String cnpj) throws InputMismatchException{
+        char dig13;
+        int sm;
+        int i;
+        int r;
+        int num;
+        int peso;
+        sm = 0;
+        peso = 2;
+
+        for (i = 11; i >= 0; i--) {
+            num = (int) (cnpj.charAt(i) - 48);
+            sm = sm + (num * peso);
+            peso = peso + 1;
+            if (peso == 10) {
+                peso = 2;
+            }
+        }
+
+        r = sm % 11;
+        if (r == 0 || r == 1) {
+            dig13 = '0';
+        } else {
+            dig13 = (char) ((11 - r) + 48);
+        }
+
+        return dig13;
+    }
 
     private String listContains(List<String> cnpjListPayers, List<String> cnpjListToSearch) {
         for (String cnpj : cnpjListPayers) {
-            if(cnpjListToSearch.contains(cnpj)){ // is on the list of Payers
+            if (cnpjListToSearch.contains(cnpj)) { // is on the list of Payers
                 return cnpj;
             }
         }
@@ -126,22 +227,27 @@ public class ReadPdfBoleto implements ReadPdfInterface {
 
         String cnpjSupplier = "";
 
-        searchAllCnpjInPdf();
+        allCnpjInPdf = searchAllCnpjInPdf();
 
         cnpjSupplier = listNotContains(cnpjListPayers);
 
-        if(cnpjSupplier.isBlank()){
+        if (cnpjSupplier.isBlank()) {
             var listCnpjWithOutSeparator = searchAllCnpjWithoutSeparator();
-            cnpjSupplier = listNotContains(listCnpjWithOutSeparator);
+            allCnpjInPdf = listCnpjWithOutSeparator;
+            cnpjSupplier = listNotContains(cnpjListPayers);
+        }
+
+        if (!isValidCnpj(cnpjSupplier)) {
+            cnpjSupplier = "";
         }
 
         return cnpjSupplier;
 
     }
 
-    private String listNotContains(List<String> cnpjListPayers ){
+    private String listNotContains(List<String> cnpjListPayers) {
         for (String cnpj : allCnpjInPdf) {
-            if(!cnpjListPayers.contains(cnpj)){ // not in list of Payers
+            if (!cnpjListPayers.contains(cnpj)) { // not in list of Payers
                 return cnpj;
             }
         }
@@ -154,7 +260,7 @@ public class ReadPdfBoleto implements ReadPdfInterface {
         BoletoBarCodeTool accessKeyTool = new BoletoBarCodeTool(accessKey, boletoType);
         Double value = accessKeyTool.getValue();
 
-        if(value == 0d){
+        if (value == 0d) {
             value = valueFromText();
         }
 
@@ -162,10 +268,9 @@ public class ReadPdfBoleto implements ReadPdfInterface {
 
     }
 
-
     public Double valueFromText() {
 
-        if(textToSearchIn ==null || textToSearchIn.isBlank()){
+        if (textToSearchIn == null || textToSearchIn.isBlank()) {
             return 0d;
         }
 
@@ -212,7 +317,7 @@ public class ReadPdfBoleto implements ReadPdfInterface {
                     "\\d{5}\\.\\d{5}\\s\\s+\\d{5}\\.\\d{6}\\s\\s+\\d{5}\\.\\d{6}\\s\\s+\\d{1}\\s+\\d{14}", // safra
                     "\\d{12}\\s+\\d{12}\\s\\d{12}\\s+\\d{12}", // boleto vivo
                     "\\d{5}\\.\\d{5}\\W\\d{5}\\.\\d{6}\\W\\d{5}\\.\\d{6}\\W\\d{1,}\\W{1,6}\\d{14}", // caracteres
-                    "(\\d{5}\\.\\d{5}\\W\\W\\d{5}\\.\\d{6}\\W\\W\\d{5}\\.\\d{6}\\W\\W\\d{1}\\W\\W\\d{14})", //sicoob
+                    "(\\d{5}\\.\\d{5}\\W\\W\\d{5}\\.\\d{6}\\W\\W\\d{5}\\.\\d{6}\\W\\W\\d{1}\\W\\W\\d{14})", // sicoob
                     "((\\d{11}-\\d(\\W?)){4})", // boleto GRU simples
                     "((\\d{12}\\W){4})", // boleto fgts
                     "((\\d{12}\\W{2}){4})", // boleto fgts
@@ -235,7 +340,7 @@ public class ReadPdfBoleto implements ReadPdfInterface {
         return accessKey;
     }
 
-    public String linhaDigitavel(){
+    public String linhaDigitavel() {
         return accessKey();
     }
 

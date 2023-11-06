@@ -43,6 +43,9 @@ public class DefinePdfType {
     }
 
     public BoletoType getBoletoType(){
+        if(boletoType == null){
+            setBoletoType();
+        }
         return this.boletoType;
     }
 

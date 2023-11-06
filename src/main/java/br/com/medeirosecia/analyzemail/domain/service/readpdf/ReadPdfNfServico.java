@@ -47,7 +47,7 @@ public class ReadPdfNfServico implements ReadPdfInterface {
 
     @Override
     public String cnpjSupplier() {
-        // TODO test fornecedora de CNPJ para NFS-e
+        // FEAT test fornecedora de CNPJ para NFS-e
         return accesskey.substring(10,23);
     }
 
