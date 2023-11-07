@@ -54,7 +54,7 @@ public class AnalyzeInbox extends Task<Void> {
 
         List<EmailMessageDAO> listMessages = getListMessages();
 
-        // TODO get int number of total messages for outlook
+        // FEAT get int number of total messages for outlook
 
         int messageNumberActual = 1;
         String userMsg = "";
@@ -85,7 +85,6 @@ public class AnalyzeInbox extends Task<Void> {
 
         updateMessage("Finalizado. Analizados " + (messageNumberActual-1) + " de " + listMessages.size() + " e-mails.");
 
-        // TODO after finish, convert CSV to Excel file
 
         if (Thread.currentThread().isInterrupted()) {
             Thread.currentThread().interrupt();
@@ -93,6 +92,8 @@ public class AnalyzeInbox extends Task<Void> {
 
         return null;
     }
+
+
 
     private void analyzeAttachments(Map<String, HandleAttachmentType> extensionsMap, String userMsg,
             List<EmailAttachmentDAO> attachments) {

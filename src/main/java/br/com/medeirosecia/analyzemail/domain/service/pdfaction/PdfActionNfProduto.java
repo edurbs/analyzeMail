@@ -41,7 +41,7 @@ public class PdfActionNfProduto extends PdfActionAbstract {
             "Nome do arquivo"
         };
 
-        String csvFilePath =  new ConfigFile().getBaseFolder()+File.pathSeparator+"PlanilhaNF-AnalyzedMail.csv";
+        String csvFilePath =  new ConfigFile().getBaseFolder()+File.separator+"PlanilhaNF-AnalyzedMail.csv";
 
         var csvFile = new CsvFile(csvFilePath, header);
 

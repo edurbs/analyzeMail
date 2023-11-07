@@ -20,6 +20,10 @@ public class CsvFile {
         this.header = header;
     }
 
+    public CsvFile(String filePath){
+        this.filePath = filePath;
+    }
+
     private void checkHeader(){
 
         File file = new File(filePath);
@@ -47,11 +51,12 @@ public class CsvFile {
     public List<String[]> getAllLines(){
         List<String[]> listLines = new ArrayList<>();
 
-        try (Stream<String> lines = Files.lines(Paths.get(filePath), StandardCharsets.UTF_8)) {
-            lines.forEach(line -> {
+        try  {
+            List<String> allCsvLines = Files.readAllLines(Paths.get(filePath), StandardCharsets.UTF_8);
+            for (String line : allCsvLines) {
                 String[] row = line.split(";");
                 listLines.add(row);
-            });
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

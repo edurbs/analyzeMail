@@ -24,8 +24,8 @@ public class BoletoBarCodeTool {
         switch (boletoType) {
             case ENERGISA -> dueDate = getDateFromComum();
             case CONSUMO_VIVO -> dueDate = getDateFromConsumoVivo();
-            case DARF -> dueDate = getDateFromDarf();
-            case DARF_SICALC -> dueDate = getDateFromDarfSicalc();
+            case DARF, DARF_SICALC -> dueDate = getDateFromDarf();
+            //case DARF_SICALC -> dueDate = getDateFromDarfSicalc();
             case GRRF -> dueDate = getDateFromGrrf();
             case GRF -> dueDate = getDateFromGrf();
             case GRU_SIMPLES -> dueDate = getDateFromGruSimples();

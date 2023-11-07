@@ -25,6 +25,7 @@ public class PdfActionBoleto extends PdfActionAbstract {
         String stringDate = date[0] + "/" + date[1] + "/" + date[2];
 
         String value = searchPdf.value().toString();
+        value = value.replace(".", ",");
 
         String cnpjPayer = searchPdf.cnpjPayer();
         String cnpjSupplier = searchPdf.cnpjSupplier();
@@ -49,7 +50,7 @@ public class PdfActionBoleto extends PdfActionAbstract {
         };
 
 
-        String csvFilePath =  new ConfigFile().getBaseFolder()+File.pathSeparator+"PlanilhaBoleto-AnalyzedMail.csv";
+        String csvFilePath =  new ConfigFile().getBaseFolder()+File.separator+"PlanilhaBoleto-AnalyzedMail.csv";
 
         var csvFile = new CsvFile(csvFilePath, header);
 

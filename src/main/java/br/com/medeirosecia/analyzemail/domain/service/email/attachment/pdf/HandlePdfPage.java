@@ -25,13 +25,15 @@ public class HandlePdfPage {
 
         // create a class to store this relationship of the map
 
-        final Map<PdfType, PdfActionInterface> mapPdfActionByType = new EnumMap<>(PdfType.class);
+        /* final Map<PdfType, PdfActionInterface> mapPdfActionByType = new EnumMap<>(PdfType.class);
         mapPdfActionByType.put(PdfType.NF_PRODUTO, new PdfActionNfProduto());
         mapPdfActionByType.put(PdfType.NF_SERVICO, new PdfActionNfServico());
         mapPdfActionByType.put(PdfType.BOLETO, new PdfActionBoleto());
         mapPdfActionByType.put(PdfType.OUTRO, new PdfActionOther());
+        PdfActionInterface pdfAction = mapPdfActionByType.get(pdfType); */
 
-        PdfActionInterface pdfAction = mapPdfActionByType.get(pdfType);
+        PdfActionInterface pdfAction = pdfType.getPdfAction();
+
 
         pdfAction.setCnpjPayers(cnpjListPayers);
         pdfAction.save(emailAttachmentDAO, pdfPageText);

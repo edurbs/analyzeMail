@@ -1,5 +1,8 @@
 package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionBoleto;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionInterface;
 import br.com.medeirosecia.analyzemail.domain.service.pdfaction.PdfActionNfProduto;
@@ -42,12 +45,14 @@ public enum PdfType {
         OUTRO(new String[] { "Declaração de Ajuste Anual", "Declaração IRPF", "Renda da Pessoa Física",
                         "NÚMERO DO RECIBO de sua declaração", "quotas do imposto em atraso", "ANO-CALENDÁRIO",
                         "informação da situação do processamento", "Declaração recebida via Internet",
-                        "Agente Receptor SERPRO",
+                        "Agente Receptor SERPRO", "Relação de Cálculo", "Tipo: Cálculo Mensal", "MODALIDADE : \"BRANCO\"",
                         "RENDIMENTOS TRIBUTÁVEIS", "RECIBO DE ENTREGA DA DECLARAÇÃO", "DEDUÇÕES LEGAIS",
-                        "IDENTIFICAÇÃO DO DECLARANTE",
-                        "IMPOSTO A RESTITUIR", "GANHO DE CAPITAL" });
+                        "Demonstrativo de Pagamento de Salário", "SALÁRIO BASE", "data admissão", "cargo", "Horas Normais",
+                        "IDENTIFICAÇÃO DO DECLARANTE", "RELAÇÃO DOS TRABALHADORES", "QUANTIDADE TRABALHADORES",
+                        "IMPOSTO A RESTITUIR", "GANHO DE CAPITAL", "RESUMO DO FECHAMENTO - EMPRESA" });
 
         private final String[] keyWords;
+
 
         private PdfType(String[] keyWords) {
                 this.keyWords = keyWords;
@@ -58,29 +63,27 @@ public enum PdfType {
         }
 
         public ReadPdfInterface getReadPdf(){
-                switch(this){
-                        case NF_PRODUTO:
-                                return new ReadPdfNfProduto();
-                        case NF_SERVICO:
-                                return new ReadPdfNfServico();
-                        case BOLETO:
-                                return new ReadPdfBoleto();
-                        default:
-                                return new ReadPdfOutro();
-                }
+
+                Map<PdfType, ReadPdfInterface> map = new EnumMap<>(PdfType.class);
+
+                map.put(PdfType.NF_PRODUTO, new ReadPdfNfProduto());
+                map.put(PdfType.NF_SERVICO, new ReadPdfNfServico());
+                map.put(PdfType.BOLETO, new ReadPdfBoleto());
+                map.put(PdfType.OUTRO, new ReadPdfOutro());
+
+                return map.get(this);
         }
 
         public PdfActionInterface getPdfAction(){
-                switch(this){
-                        case NF_PRODUTO:
-                                return new PdfActionNfProduto();
-                        case NF_SERVICO:
-                                return new PdfActionNfServico();
-                        case BOLETO:
-                                return new PdfActionBoleto();
-                        default:
-                                return new PdfActionOther();
-                }
+
+                Map<PdfType, PdfActionInterface> map = new EnumMap<>(PdfType.class);
+
+                map.put(PdfType.NF_PRODUTO, new PdfActionNfProduto());
+                map.put(PdfType.NF_SERVICO, new PdfActionNfServico());
+                map.put(PdfType.BOLETO, new PdfActionBoleto());
+                map.put(PdfType.OUTRO, new PdfActionOther());
+
+                return map.get(this);
         }
 
 }
