@@ -97,7 +97,11 @@ public class GuiFxController implements Initializable {
 
         String startFolder = configFile.getBaseFolder();
         if (!startFolder.isBlank()) {
-            directoryChooser.setInitialDirectory(new File(startFolder));
+
+            File folder = new File(startFolder);
+            if (folder.isDirectory()) {
+                directoryChooser.setInitialDirectory(folder);
+            }
         }
 
         File folderSelected = directoryChooser.showDialog(null);
@@ -116,7 +120,9 @@ public class GuiFxController implements Initializable {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecione o arquivo de credenciais");
 
-        setInitialDirectory(configFile.getPathCnpjPayersPath(), fileChooser);
+        String pathCredential = configFile.getCredentialsFilePath();
+        setInitialDirectory(pathCredential, fileChooser);
+
 
         File fileSelected = fileChooser.showOpenDialog(null);
 
@@ -130,10 +136,15 @@ public class GuiFxController implements Initializable {
     }
 
     private void setInitialDirectory(String fullFilePath, FileChooser fileChooser) {
+        if(fullFilePath == null){
+            return;
+        }
         String folderPath = fullFilePath.substring(0, fullFilePath.lastIndexOf(File.separator));
-
         if (!folderPath.isBlank()) {
-            fileChooser.setInitialDirectory(new File(folderPath));
+            File folder = new File(folderPath);
+            if(folder.isDirectory()){
+                fileChooser.setInitialDirectory(folder);
+            }
         }
     }
 
