@@ -10,31 +10,27 @@ import javafx.stage.Stage;
 
 public class GuiFx {
 
-    public GuiFx(Stage primaryStage){    
+    public GuiFx(Stage primaryStage){
         FXMLLoader fxmlLoader = new FXMLLoader(GuiFx.class.getResource("/gui/guifx.fxml"));
-        
+
 		Parent root;
         try {
             root = fxmlLoader.load();
             Scene scene = new Scene(root);
-    
-            primaryStage.setTitle("Analyze Mail v0.5.0");
+
+            primaryStage.setTitle("Analyze Mail v0.6.0");
             primaryStage.setScene(scene);
             primaryStage.setOnCloseRequest(event -> onClose());
             primaryStage.show();
-            
+
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    private void onClose() {        
+    private void onClose() {
         Platform.exit();
         System.exit(0);
     }
 
-} 
-
-    
-
+}

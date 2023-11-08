@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -15,7 +17,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.Base64;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
@@ -24,7 +25,6 @@ import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
-import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
 
 import br.com.medeirosecia.analyzemail.domain.repository.EmailAttachmentDAO;
@@ -33,11 +33,8 @@ import br.com.medeirosecia.analyzemail.domain.repository.EmailMessageDAO;
 
 public class GmailProvider implements EmailProvider {
 
-	/**
-	 *
-	 */
 	private static final String ANALYZED_MAIL = "analyzedmail";
-	Gmail service = null;
+	private Gmail service = null;
 	private String user = "me";
 	private static final String APPLICATION_NAME = "AnalyzeMail";
 	private GsonFactory jsonFactory = GsonFactory.getDefaultInstance();
@@ -46,6 +43,9 @@ public class GmailProvider implements EmailProvider {
 	private EmailLabelDAO emailLabel;
 
 	private String credentialsFile;
+
+	private boolean hasMoreMessages = true;
+
 
 	public void setCredentialsFile(String credentialsFile) {
 		this.credentialsFile = credentialsFile;
@@ -81,8 +81,8 @@ public class GmailProvider implements EmailProvider {
 		// Build a new authorized API client service.
 
 		try {
-			final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-			this.service = new Gmail.Builder(HTTP_TRANSPORT, jsonFactory, getCredentials(HTTP_TRANSPORT))
+			final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+			this.service = new Gmail.Builder(httpTransport, jsonFactory, getCredentials(httpTransport))
 					.setApplicationName(APPLICATION_NAME)
 					.build();
 
@@ -102,7 +102,7 @@ public class GmailProvider implements EmailProvider {
 		return msg;
 	}
 
-	public EmailLabelDAO getEmailLabel() {		
+	public EmailLabelDAO getEmailLabel() {
 		List<EmailLabelDAO> emailLabels = listLabels();
 		for (EmailLabelDAO emailLabelDTO : emailLabels) {
 			if (emailLabelDTO.getName().toLowerCase().contains(ANALYZED_MAIL.toLowerCase())) {
@@ -111,7 +111,7 @@ public class GmailProvider implements EmailProvider {
 			}
 		}
 		return null;
-		// TODO criar label automaticamente no gmail
+		// FEAT criar label automaticamente no gmail
 	}
 
 	private List<EmailLabelDAO> listLabels() {
@@ -129,83 +129,90 @@ public class GmailProvider implements EmailProvider {
 				}
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		return emailLabels;
 	}
 
-	public List<EmailMessageDAO> getMessagesWithoutLabel() {
-		List<Message> messages = new ArrayList<>();
+	private void getListMessage(List<EmailMessageDAO> listEmailMessagesDAO, String filter) {
+		List<Message> listMessages = new ArrayList<>();
 		if (this.service != null) {
 			try {
-				ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
-						.setQ("!label:" + ANALYZED_MAIL)
+				ListMessagesResponse listMessageResponse = this.service
+						.users()
+						.messages()
+						.list(user)
+						.setQ(filter)
+						//.setMaxResults(100L)
 						.execute();
-				messages = listMessageResponse.getMessages();				
 
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		List<EmailMessageDAO> emailMessages = new ArrayList<>();
-		if (messages != null && !messages.isEmpty()) {
-			for (Message message : messages) {
-				var emailMessage = new EmailMessageDAO(message.getId());				
-				emailMessages.add(emailMessage);
-			}
-		}
-		return emailMessages;
-	}
-
-	public List<EmailMessageDAO> getAllMessages() {
-		// TODO get all messages of the inbox, not only 500
-		List<Message> messages = new ArrayList<>();
-		if (this.service != null) {
-			try {
-				ListMessagesResponse listMessageResponse = this.service.users().messages().list(user)
-						.setQ("")
-						.setMaxResults(500L)
-						.execute();
-				messages = listMessageResponse.getMessages();	
-				
 				// Retrieve all messages from the inbox
 				while (listMessageResponse.getNextPageToken() != null) {
-					listMessageResponse = this.service.users().messages().list(user)
-							.setQ("")
-							.setMaxResults(500L)
+					listMessageResponse = this.service
+							.users()
+							.messages()
+							.list(user)
+							.setQ(filter)
+							//.setMaxResults(100L)
 							.setPageToken(listMessageResponse.getNextPageToken())
 							.execute();
-					messages.addAll(listMessageResponse.getMessages());
-				}
 
+					var messages = listMessageResponse.getMessages();
+					if(messages != null){
+						listMessages.addAll(messages);
+					}
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		List<EmailMessageDAO> emailMessages = new ArrayList<>();
-		if (messages != null && !messages.isEmpty()) {
-			for (Message message : messages) {
-				var emailMessage = new EmailMessageDAO(message.getId());				
-				emailMessages.add(emailMessage);
+
+
+		if ( !listMessages.isEmpty()) {
+			for (Message message : listMessages) {
+				var emailMessage = new EmailMessageDAO(message.getId());
+				listEmailMessagesDAO.add(emailMessage);
 			}
 		}
-		return emailMessages;
+
+		this.hasMoreMessages = false;
 	}
+
+
+
+	public void getMessagesWithoutLabel(List<EmailMessageDAO> listEmailMessagesDAO) {
+		String filter = "!label:" + ANALYZED_MAIL;
+		getListMessage(listEmailMessagesDAO, filter);
+	}
+
+	public void getAllMessages(List<EmailMessageDAO> listEmailMessagesDAO) {
+		getListMessage(listEmailMessagesDAO, "");
+
+
+
+	}
+
+
 
 	private byte[] downloadAttachment(MessagePart part, String messageId) {
 		String attId = part.getBody().getAttachmentId();
-		MessagePartBody attachPart;
 		try {
-			attachPart = service.users().messages().attachments().get(user, messageId, attId).execute();
-			return Base64.decodeBase64(attachPart.getData());
-
+			return getAttachmentData(user, messageId, attId);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new byte[0];
+	}
+
+	private byte[] getAttachmentData(String user, String messageId, String attId)
+			throws IOException {
+
+		return Base64.decodeBase64(
+			service.users().messages().attachments()
+				.get(user, messageId, attId)
+				.execute()
+				.getData());
 	}
 
 	public List<EmailAttachmentDAO> listAttachments(EmailMessageDAO emailMessageDAO, String[] extensions) {
@@ -251,6 +258,16 @@ public class GmailProvider implements EmailProvider {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void loadMoreMessages(boolean loadMore) {
+		// google do not need this logic
+	}
+
+	@Override
+	public boolean hasMoreMessages() {
+		return this.hasMoreMessages;
 	}
 
 }

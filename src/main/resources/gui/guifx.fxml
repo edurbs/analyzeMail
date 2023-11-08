@@ -43,7 +43,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="TOP_CENTER" prefHeight="187.0" prefWidth="386.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.medeirosecia.analyzemail.gui.GuiFxController">
+<VBox alignment="TOP_CENTER" prefHeight="228.0" prefWidth="386.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="br.com.medeirosecia.analyzemail.gui.GuiFxController">
   <children>
       <HBox alignment="CENTER_LEFT" prefHeight="35.0" prefWidth="376.0">
          <children>
@@ -68,6 +68,9 @@
                <padding>
                   <Insets right="10.0" />
                </padding>
+               <HBox.margin>
+                  <Insets bottom="5.0" />
+               </HBox.margin>
             </Label>
             <RadioButton fx:id="toggleOnlyNotAnalized" mnemonicParsing="false" selected="true" text="Não analisadas">
                <padding>
@@ -83,10 +86,31 @@
             <Insets bottom="5.0" />
          </VBox.margin>
       </HBox>
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <Label text="CNPJ's da empresa: " />
+            <TextField fx:id="textFieldPathCnpj" prefHeight="25.0" prefWidth="201.0">
+               <HBox.margin>
+                  <Insets />
+               </HBox.margin>
+               <padding>
+                  <Insets right="5.0" />
+               </padding>
+            </TextField>
+            <Button fx:id="buttonSearchCnpj" mnemonicParsing="false" onAction="#buttonSearchCnpjClicked" text="Procurar">
+               <HBox.margin>
+                  <Insets left="5.0" />
+               </HBox.margin>
+            </Button>
+         </children>
+         <VBox.margin>
+            <Insets bottom="5.0" />
+         </VBox.margin>
+      </HBox>
       <HBox alignment="CENTER_LEFT" prefHeight="44.0" prefWidth="640.0">
          <children>
             <Label text="JSON Credencial: " />
-            <TextField fx:id="textFieldPathCredentials" prefHeight="25.0" prefWidth="203.0" />
+            <TextField fx:id="textFieldPathCredentials" prefHeight="25.0" prefWidth="215.0" />
             <Button fx:id="buttonSearchCredential" mnemonicParsing="false" onAction="#buttonCredentialClicked" text="Procurar">
                <HBox.margin>
                   <Insets left="5.0" />
@@ -132,16 +156,20 @@
             <Insets bottom="5.0" top="5.0" />
          </VBox.margin>
       </HBox>
-      <HBox fx:id="hboxDebug" alignment="CENTER_LEFT" prefHeight="32.0" prefWidth="384.0">
+      <HBox fx:id="hboxDebug" alignment="CENTER_LEFT" minHeight="32.0" prefHeight="32.0" prefWidth="384.0">
          <children>
-            <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="379.0" progress="0.0">
+            <ProgressBar fx:id="progressBar" prefHeight="18.0" prefWidth="375.0" progress="0.0">
                <opaqueInsets>
                   <Insets />
                </opaqueInsets>
             </ProgressBar>
          </children>
       </HBox>
-      <Label fx:id="labelProgress" prefHeight="17.0" prefWidth="378.0" />
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
+         <children>
+            <Label fx:id="labelProgress" />
+         </children>
+      </HBox>
   </children>
    <padding>
       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
