@@ -43,7 +43,7 @@ public class AnalyzeInbox extends Task<Void> {
         extensionsMap.put("XML", new HandleXML());
         extensionsMap.put("ZIP", new HandleArchive());
         extensionsMap.put("RAR", new HandleArchive());
-        // FEAT handle archive with 7z format
+        // TODO handle archive with 7z format
 
         String[] extensions = extensionsMap.keySet().toArray(new String[extensionsMap.size()]);
 
@@ -54,7 +54,7 @@ public class AnalyzeInbox extends Task<Void> {
 
         List<EmailMessageDAO> listMessages = getListMessages();
 
-        // FEAT get int number of total messages for outlook
+        // TODO get int number of total messages for outlook
 
         int messageNumberActual = 1;
         String userMsg = "";
@@ -116,7 +116,7 @@ public class AnalyzeInbox extends Task<Void> {
     private void getMoreMessages(List<EmailMessageDAO> listMessages, int messageNumberActual) throws InterruptedException {
         while (listMessages.size() < messageNumberActual) {
             updateMessage("Aguardando nova lista de e-mails...");
-
+            // TODO get better logic here to not wait the list
             updateProgress(-1, -1);
             emailProvider.loadMoreMessages(true);
             Thread.sleep(1000);

@@ -2,6 +2,7 @@ package br.com.medeirosecia.analyzemail.infra.email;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -147,7 +148,7 @@ public class OutlookProvider implements EmailProvider {
                 .mailFolders(mailFolder.id)
                 .messages()
                 .buildRequest()
-                .filter(filter)
+                //.filter(filter)
                 .top(pageSize)
                 .skip(skip)
                 .get();
@@ -161,9 +162,11 @@ public class OutlookProvider implements EmailProvider {
                 while (!getMoreMessages){ // wait for next request to get more messages
                     waitToGetMoreMessages();
                 }
-
-                EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);
-                listEmailMessagesDAO.add(emailMessageDAO);
+                var categories = message.categories;
+                if(filter.isBlank() || ( categories!=null && !categories.contains(ANALYZED_MAIL))){
+                    EmailMessageDAO emailMessageDAO = new EmailMessageDAO(message.id, message.parentFolderId);
+                    listEmailMessagesDAO.add(emailMessageDAO);
+                }
 
             }
 
@@ -288,7 +291,7 @@ public class OutlookProvider implements EmailProvider {
                 .patch(message);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
 

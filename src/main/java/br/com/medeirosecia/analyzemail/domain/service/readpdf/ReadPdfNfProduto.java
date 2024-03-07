@@ -53,7 +53,7 @@ public class ReadPdfNfProduto implements ReadPdfInterface {
     }
 
     public String cnpjPayer(){
-        // FEAT implement pagador CNPJ de NF
+        // TODO implement pagador CNPJ de NF
         return "";
     }
 

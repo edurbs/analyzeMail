@@ -141,7 +141,7 @@ public class BoletoBarCodeTool {
         Calendar startDate = Calendar.getInstance();
         startDate.set(1997, 9, 7); // 7/10/1997
 
-        // FEAT handle boleto with year after 2025 (startdate 9999)
+        // TODO handle boleto with year after 2025 (startdate 9999)
 
         return sumDate(startDate, days);
 

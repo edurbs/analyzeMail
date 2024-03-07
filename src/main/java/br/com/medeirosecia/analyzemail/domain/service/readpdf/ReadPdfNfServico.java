@@ -41,13 +41,13 @@ public class ReadPdfNfServico implements ReadPdfInterface {
 
     @Override
     public String cnpjPayer() {
-        // FEAT pagador de CNPJ para NFS-e
+        // TODO pagador de CNPJ para NFS-e
         return "";
     }
 
     @Override
     public String cnpjSupplier() {
-        // FEAT test fornecedora de CNPJ para NFS-e
+        // TODO test fornecedora de CNPJ para NFS-e
         return accesskey.substring(10,23);
     }
 
