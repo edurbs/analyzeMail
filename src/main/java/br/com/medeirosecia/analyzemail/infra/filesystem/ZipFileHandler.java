@@ -12,11 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.sevenzipjbinding.IInArchive;
-import net.sf.sevenzipjbinding.IInStream;
-import net.sf.sevenzipjbinding.ISequentialOutStream;
-import net.sf.sevenzipjbinding.SevenZip;
-import net.sf.sevenzipjbinding.SevenZipException;
+import net.sf.sevenzipjbinding.*;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
 import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 
@@ -78,6 +74,11 @@ public class ZipFileHandler {
     }
 
     private Map<String, byte[]> openArchive(List<String> extensions, IInStream randomAccessFileInStream) {
+        try {
+            SevenZip.initSevenZipFromPlatformJAR();
+        } catch (SevenZipNativeInitializationException e) {
+            throw new RuntimeException(e);
+        }
         try (IInArchive inArchive = SevenZip.openInArchive(null, randomAccessFileInStream)) {
             Map<String, byte[]> fileMap = new HashMap<>();
             for (ISimpleInArchiveItem item : inArchive.getSimpleInterface().getArchiveItems()) {
@@ -85,10 +86,11 @@ public class ZipFileHandler {
                     fileMap.put(item.getPath(), extractFileExtension(item, extensions));
                 }
             }
-
+            return fileMap;
         } catch (SevenZipException e) {
             e.printStackTrace();
         }
+
         return new HashMap<>();
     }
 

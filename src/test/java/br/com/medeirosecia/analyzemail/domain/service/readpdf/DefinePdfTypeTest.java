@@ -8,6 +8,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import br.com.medeirosecia.analyzemail.domain.service.readpdf.boleto.BoletoType;
 
+import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+
 class DefinePdfTypeTest {
 
     // private CountPdfKeywords countPdfKeywords;
@@ -16,8 +19,8 @@ class DefinePdfTypeTest {
 
     void setUp(String fileName) {
 
-        String pdfText = new PdfTestUtils().getFirstPage(fileName);
-        this.definePdfType = new DefinePdfType(pdfText);
+        HashMap<String, ByteArrayInputStream> pdfText = new PdfTestUtils().getAllPages(fileName);
+        this.definePdfType = new DefinePdfType(pdfText.keySet().iterator().next());
     }
 
     @ParameterizedTest

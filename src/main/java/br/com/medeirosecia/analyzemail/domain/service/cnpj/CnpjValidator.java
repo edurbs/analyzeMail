@@ -22,26 +22,34 @@ public class CnpjValidator {
             return false;
         }
 
-        // Calculate the first verification digit
-        int sum = 0;
-        int weight = 5;
-        for (int i = 11; i > 0; i--) {
-            sum += Integer.parseInt(cnpj.substring(11 - i, 12 - i)) * weight;
-            weight--;
+        // Calcula o primeiro dígito verificador
+        int soma = 0;
+        int peso = 2;
+        for (int i = 11; i >= 0; i--) {
+            soma += (cnpj.charAt(i) - '0') * peso;
+            peso++;
+            if (peso == 10) {
+                peso = 2;
+            }
         }
-        int verificationDigit1 = (sum % 11) < 2 ? 0 : 11 - (sum % 11);
+        int resto = soma % 11;
+        int digito1 = resto < 2 ? 0 : 11 - resto;
 
-        // Calculate the second verification digit
-        sum = 0;
-        weight = 6;
-        for (int i = 12; i > 0; i--) {
-            sum += Integer.parseInt(cnpj.substring(12 - i, 13 - i)) * weight;
-            weight--;
+        // Calcula o segundo dígito verificador
+        soma = 0;
+        peso = 2;
+        for (int i = 12; i >= 0; i--) {
+            soma += (cnpj.charAt(i) - '0') * peso;
+            peso++;
+            if (peso == 10) {
+                peso = 2;
+            }
         }
-        int verificationDigit2 = (sum % 11) < 2 ? 0 : 11 - (sum % 11);
+        resto = soma % 11;
+        int digito2 = resto < 2 ? 0 : 11 - resto;
 
-        // Check if the verification digits match the input CNPJ
-        return cnpj.equals(cnpj.substring(0, 12) + verificationDigit1 + verificationDigit2);
+        // Verifica se os dígitos calculados coincidem com os dígitos informados
+        return (cnpj.charAt(12) - '0' == digito1) && (cnpj.charAt(13) - '0' == digito2);
     }
 
 

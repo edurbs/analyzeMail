@@ -234,7 +234,7 @@ public class ReadPdfBoleto implements ReadPdfInterface {
         if (cnpjSupplier.isBlank()) {
             var listCnpjWithOutSeparator = searchAllCnpjWithoutSeparator();
             allCnpjInPdf = listCnpjWithOutSeparator;
-            cnpjSupplier = listNotContains(cnpjListPayers);
+            cnpjSupplier = listNotContains(cnpjListPayers); // TODO fix it
         }
 
         if (!isValidCnpj(cnpjSupplier)) {

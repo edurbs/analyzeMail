@@ -5,13 +5,14 @@
 
 	<groupId>br.com.medeirosecia</groupId>
 	<artifactId>analyzemail</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.6.1</version>
 
 	<name>analyzemail</name>
 
 	<properties>
 		<java.version>17</java.version>
-
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<junit.version>5.10.0</junit.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 
@@ -77,6 +78,18 @@
 			<artifactId>sevenzipjbinding</artifactId>
 			<version>16.02-2.01</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/net.sf.sevenzipjbinding/sevenzipjbinding-windows-amd64 -->
+		<dependency>
+			<groupId>net.sf.sevenzipjbinding</groupId>
+			<artifactId>sevenzipjbinding-windows-amd64</artifactId>
+			<version>16.02-2.01</version>
+		</dependency>
+
+		<!--		<dependency>-->
+<!--			<groupId>net.sf.sevenzipjbinding</groupId>-->
+<!--			<artifactId>sevenzipjbinding-all-platforms</artifactId>-->
+<!--			<version>16.02-2.01</version>-->
+<!--		</dependency>-->
 
 
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
@@ -201,6 +214,14 @@
 			<version>1.43.3</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
+		<dependency>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-shade-plugin</artifactId>
+			<version>3.5.2</version>
+		</dependency>
+
+
 
 
 		<!--	<dependency>
@@ -229,10 +250,8 @@
 				<configuration>
 					<archive>
 						<manifest>
-
 							<!-- give full qualified name of your main class-->
 							<mainClass>br.com.medeirosecia.analyzemail.AnalyzemailApplication</mainClass>
-
 						</manifest>
 					</archive>
 				</configuration>
@@ -247,6 +266,31 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.openjfx</groupId>
 				<artifactId>javafx-maven-plugin</artifactId>
 				<version>0.0.8</version>
@@ -255,7 +299,7 @@
 						<!-- Default configuration for running with: mvn clean javafx:run -->
 						<id>default-cli</id>
 						<configuration>
-							<mainClass>br.com.medeirosecia.analyzemail.AnalyzemailApplication</mainClass>
+							<mainClass>br.com.medeirosecia.analyzemail/br.com.medeirosecia.analyzemail.AnalyzemailApplication</mainClass>
 							<launcher>app</launcher>
 							<jlinkZipName>app</jlinkZipName>
 							<jlinkImageName>app</jlinkImageName>

@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -14,16 +15,17 @@ import br.com.medeirosecia.analyzemail.infra.pdf.PdfTools;
 
 public class PdfTestUtils {
 
-    public String getFirstPage(String fileName) {
-       var allPages = getAllPages(fileName);
-       if(allPages!=null){
-           return allPages.get(0).toLowerCase();
-       }else{
-           return "";
-       }
-    }
+//    public String getFirstPage(String fileName) {
+//       var allPages = getAllPages(fileName);
+//       if(allPages!=null){
+//           return allPages.
+//           return allPages.get(0).toLowerCase();
+//       }else{
+//           return "";
+//       }
+//    }
 
-    public List<String> getAllPages(String filename){
+    public HashMap<String, ByteArrayInputStream> getAllPages(String filename){
         try (FileInputStream fis = new FileInputStream(getPath(filename))){
             EmailAttachmentDAO emailAttachment = new EmailAttachmentDAO(filename, IOUtils.toByteArray(fis));
             ByteArrayInputStream inputStream = new ByteArrayInputStream(emailAttachment.getData());

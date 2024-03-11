@@ -96,10 +96,17 @@ public class DefinePdfType {
 
             int keywordsFound = 0;
 
+            // get the total of times this same keyword is found, but just one time for each keyword
+            for (String keyword : keywordsSet) {
+                if(pdfText.toLowerCase().contains(keyword.toLowerCase())){
+                    keywordsFound++;
+                }
+            }
+
             // get the total of times this same keyword is found, not just one time
-            keywordsFound = keywordsSet.stream()
-                .map(key -> pdfText.toLowerCase().split(key.toLowerCase()).length - 1)
-                .reduce(0, Integer::sum);
+//            keywordsFound = keywordsSet.stream()
+//                .map(key -> pdfText.toLowerCase().split(key.toLowerCase()).length - 1)
+//                .reduce(0, Integer::sum);
 
             ReadPdfInterface readPdf = pdfType.getReadPdf();
             readPdf.setText(pdfText);

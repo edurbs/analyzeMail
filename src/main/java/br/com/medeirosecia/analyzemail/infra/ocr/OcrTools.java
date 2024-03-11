@@ -27,7 +27,7 @@ public class OcrTools {
             tesseract.setDatapath(tessractDataPath);
             tesseract.setLanguage("por");
             tesseract.setPageSegMode(1); // Automatic Page Segmentation with OSD
-            tesseract.setVariable("debug_file", "/dev/null");
+            //tesseract.setVariable("debug_file", "/dev/null");
 
             return tesseract.doOCR(bufferedImage);
 

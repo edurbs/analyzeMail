@@ -18,7 +18,7 @@ public class GuiFx {
             root = fxmlLoader.load();
             Scene scene = new Scene(root);
 
-            primaryStage.setTitle("Analyze Mail v0.6.0");
+            primaryStage.setTitle("Analyze Mail v0.6.1");
             primaryStage.setScene(scene);
             primaryStage.setOnCloseRequest(event -> onClose());
             primaryStage.show();

@@ -28,7 +28,6 @@ public class HandleArchive implements HandleAttachmentType {
 
             String fileNameExtension = fileName.substring(fileName.lastIndexOf(".") + 1).toUpperCase();
             EmailAttachmentDAO extractedEmailAttachmentDAO = new EmailAttachmentDAO(fileName, data);
-
             extensionsMap.get(fileNameExtension).analyzeAttachment(extractedEmailAttachmentDAO);
         });
 

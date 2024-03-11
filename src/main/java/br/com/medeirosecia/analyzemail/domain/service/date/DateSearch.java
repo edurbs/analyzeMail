@@ -20,7 +20,7 @@ public class DateSearch {
     String textToSearchIn;
 
     public DateSearch(String textToSearchIn){
-        this.textToSearchIn = textToSearchIn;
+        this.textToSearchIn = textToSearchIn.toLowerCase();
     }
 
     public List<String[]> allDates(){
@@ -140,7 +140,7 @@ public class DateSearch {
         targetWord = targetWord.toLowerCase();
 
         // date with - / or . as separator
-        Pattern pattern = Pattern.compile("\\d{2}[-/\\.]\\d{2}[-/\\.]\\d{4}");
+        Pattern pattern = Pattern.compile("\\d{2}[-\\/\\.]\\d{2}[-\\/\\.]\\d{4}");
         Matcher matcher = pattern.matcher(textToSearchIn);
 
         SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd-MM-yyyy");

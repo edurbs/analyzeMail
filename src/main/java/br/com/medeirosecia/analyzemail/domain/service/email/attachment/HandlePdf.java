@@ -14,9 +14,13 @@ public class HandlePdf implements HandleAttachmentType {
             PdfTools tools = new PdfTools(
                 new ByteArrayInputStream(emailAttachment.getData())
             );
-            tools.getTextFromPdf().forEach(page ->
-                new HandlePdfPage(page, emailAttachment)
-            );
+            var hashMapPages = tools.getTextFromPdf();
+            hashMapPages.forEach((string, byteArray) -> {
+                EmailAttachmentDAO emailAttachmentDAOClone = (EmailAttachmentDAO) emailAttachment.clone();
+                emailAttachmentDAOClone.setData(byteArray.readAllBytes());
+                emailAttachmentDAOClone.setFileName(emailAttachment.getFileName());
+                new HandlePdfPage(string, emailAttachmentDAOClone);
+            });
         });
         thread.start();
     }

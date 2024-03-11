@@ -1,5 +1,7 @@
 package br.com.medeirosecia.analyzemail.domain.service.readpdf;
 
+import java.io.ByteArrayInputStream;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.Assertions;
@@ -10,13 +12,13 @@ class ReadPdfBoletoTest {
     ReadPdfBoleto searchPdfBoleto;
     PdfTestUtils pdfUtils = new PdfTestUtils();
 
-    void setUpOnePage(String fileName) {
-        String pdfText = pdfUtils.getFirstPage(fileName);
-        searchPdfBoleto = new ReadPdfBoleto();
-        searchPdfBoleto.setText(pdfText);
-    }
+//    void setUp(String fileName) {
+//        String pdfText = pdfUtils.getFirstPage(fileName);
+//        searchPdfBoleto = new ReadPdfBoleto();
+//        searchPdfBoleto.setText(pdfText);
+//    }
 
-    List<String> setUpMultiplePage(String fileName){
+    HashMap<String, ByteArrayInputStream> setUp(String fileName){
         return pdfUtils.getAllPages(fileName);
     }
 
@@ -47,7 +49,7 @@ class ReadPdfBoletoTest {
                 darMT3.pdf,         858200000350040801232022312155924039281671828613
             """)
     void testAccessKey(String fileName, String accessKey) {
-        setUpOnePage(fileName);
+        setUp(fileName);
         Assertions.assertEquals(accessKey, searchPdfBoleto.accessKey());
     }
 
@@ -69,7 +71,7 @@ class ReadPdfBoletoTest {
             darMT3.pdf,
     """)
     void testCnpjSupplier(String fileName, String cnpj) {
-        setUpOnePage(fileName);
+        setUp(fileName);
         Assertions.assertEquals(cleanCnpj(cnpj), searchPdfBoleto.cnpjSupplier());
 
     }
@@ -92,7 +94,7 @@ class ReadPdfBoletoTest {
             darMT3.pdf, 03.477.007/0001-97
     """)
     void testCnpjPayer(String filename, String cnpj){
-        setUpOnePage(filename);
+        setUp(filename);
         Assertions.assertEquals(cleanCnpj(cnpj), searchPdfBoleto.cnpjPayer());
     }
 
@@ -115,7 +117,7 @@ class ReadPdfBoletoTest {
             darMT3.pdf, 15/12/2023
     """)
     void testDate(String fileName, String date) {
-        setUpOnePage(fileName);
+        setUp(fileName);
         Assertions.assertEquals(date, pdfUtils.getFinalDate(searchPdfBoleto.date()));
 
 
@@ -142,7 +144,7 @@ class ReadPdfBoletoTest {
                     darMT3.pdf, 3504.08
             """)
     void testValue(String fileName, String value) {
-        setUpOnePage(fileName);
+        setUp(fileName);
         Assertions.assertEquals(value, searchPdfBoleto.value().toString());
     }
 
@@ -152,7 +154,7 @@ class ReadPdfBoletoTest {
             gru2.pdf, 118.73, 30/09/2022, 42.130.122/0001-42
         """)
     void testGru(String fileName, String value, String date, String cnpjPayer){
-        setUpOnePage(fileName);
+        setUp(fileName);
         Assertions.assertEquals(value, searchPdfBoleto.value().toString());
         Assertions.assertEquals(date, pdfUtils.getFinalDate(searchPdfBoleto.date()));
         Assertions.assertEquals(cleanCnpj(cnpjPayer), searchPdfBoleto.cnpjPayer());
@@ -166,7 +168,7 @@ class ReadPdfBoletoTest {
         """)
 
     void testEnergisa(String fileName, String value, String date, String cnpjPayer, String cnpjSuppier){
-        setUpOnePage(fileName);
+        setUp(fileName);
         Assertions.assertEquals(value, searchPdfBoleto.value().toString());
         Assertions.assertEquals(date, pdfUtils.getFinalDate(searchPdfBoleto.date()));
         Assertions.assertEquals(cleanCnpj(cnpjPayer), searchPdfBoleto.cnpjPayer());
